@@ -181,5 +181,5 @@ cython_debug/
 .cursorindexingignore
 
 #Data files
-.csv
-.db
+*.csv
+*.db
