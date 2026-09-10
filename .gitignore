@@ -183,3 +183,4 @@ cython_debug/
 #Data files
 *.csv
 *.db
+*.xlsx
