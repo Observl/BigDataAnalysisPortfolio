@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="数据分析作品集：用户行为、汽车行业与全球电动汽车市场分析项目。">
+  <title>大数据分析作品集</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #617087;
+      --line: #dbe3ee;
+      --surface: rgba(255, 255, 255, 0.92);
+      --primary: #3157d5;
+      --primary-dark: #2443aa;
+      --soft: #eef3ff;
+      --shadow: 0 18px 45px rgba(31, 48, 84, 0.11);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 8% 4%, #e2eaff 0, transparent 28rem),
+        radial-gradient(circle at 92% 12%, #f5e9ff 0, transparent 25rem),
+        #f7f9fc;
+      font-family: Inter, "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+      line-height: 1.65;
+    }
+
+    a { color: inherit; }
+
+    .page {
+      width: min(1120px, calc(100% - 40px));
+      margin: 0 auto;
+      padding: 72px 0 48px;
+    }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: var(--primary);
+      font-size: 0.82rem;
+      font-weight: 750;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      max-width: 760px;
+      margin: 0;
+      font-size: clamp(2.35rem, 6vw, 4.7rem);
+      line-height: 1.08;
+      letter-spacing: -0.045em;
+    }
+
+    .intro {
+      max-width: 720px;
+      margin: 24px 0 0;
+      color: var(--muted);
+      font-size: 1.08rem;
+    }
+
+    .skills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin: 28px 0 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .skills li {
+      padding: 6px 12px;
+      border: 1px solid #d6dff5;
+      border-radius: 999px;
+      color: #385078;
+      background: rgba(255, 255, 255, 0.7);
+      font-size: 0.88rem;
+      font-weight: 650;
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 20px;
+      margin: 68px 0 22px;
+    }
+
+    .section-heading h2 {
+      margin: 0;
+      font-size: 1.55rem;
+      letter-spacing: -0.02em;
+    }
+
+    .section-heading p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
+
+    .card {
+      display: flex;
+      min-height: 330px;
+      flex-direction: column;
+      padding: 26px;
+      border: 1px solid rgba(210, 220, 235, 0.9);
+      border-radius: 20px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .card.featured {
+      border-color: #afc0ff;
+      background: linear-gradient(155deg, #ffffff 30%, #edf2ff 100%);
+    }
+
+    .status {
+      align-self: flex-start;
+      padding: 4px 9px;
+      border-radius: 999px;
+      color: #2950bf;
+      background: var(--soft);
+      font-size: 0.76rem;
+      font-weight: 750;
+    }
+
+    .card h3 {
+      margin: 18px 0 10px;
+      font-size: 1.27rem;
+      line-height: 1.35;
+    }
+
+    .card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.94rem;
+    }
+
+    .stack {
+      margin-top: 16px !important;
+      color: #475a78 !important;
+      font-size: 0.82rem !important;
+      font-weight: 650;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: auto;
+      padding-top: 24px;
+    }
+
+    .button {
+      display: inline-flex;
+      min-height: 42px;
+      align-items: center;
+      justify-content: center;
+      padding: 9px 14px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      font-size: 0.88rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: transform 150ms ease, border-color 150ms ease;
+    }
+
+    .button.primary {
+      border-color: var(--primary);
+      color: #fff;
+      background: var(--primary);
+    }
+
+    .button:hover {
+      border-color: #8ca1d9;
+      transform: translateY(-2px);
+    }
+
+    .button.primary:hover {
+      border-color: var(--primary-dark);
+      background: var(--primary-dark);
+    }
+
+    .button:focus-visible {
+      outline: 3px solid rgba(49, 87, 213, 0.3);
+      outline-offset: 2px;
+    }
+
+    footer {
+      margin-top: 44px;
+      padding-top: 24px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    @media (max-width: 860px) {
+      .grid { grid-template-columns: 1fr; }
+      .card { min-height: 0; }
+    }
+
+    @media (max-width: 560px) {
+      .page { width: min(100% - 28px, 1120px); padding-top: 48px; }
+      .section-heading { align-items: flex-start; flex-direction: column; }
+      .card { padding: 22px; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .button { transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <p class="eyebrow">Data Analysis Portfolio</p>
+      <h1>从大规模数据中提炼可解释的业务洞察</h1>
+      <p class="intro">这里收录了用户行为与汽车行业相关的数据分析项目，覆盖数据清洗、SQL 聚合、交互式可视化、用户分群和业务建议。</p>
+      <ul class="skills" aria-label="主要技能">
+        <li>Python</li>
+        <li>SQL</li>
+        <li>DuckDB</li>
+        <li>Pandas</li>
+        <li>Plotly</li>
+        <li>Scikit-learn</li>
+      </ul>
+    </header>
+
+    <section aria-labelledby="projects-title">
+      <div class="section-heading">
+        <h2 id="projects-title">项目展示</h2>
+        <p>点击项目查看在线报告或仓库资料</p>
+      </div>
+
+      <div class="grid">
+        <article class="card featured">
+          <span class="status">交互式报告</span>
+          <h3>淘宝用户购物行为分析</h3>
+          <p>基于约一亿条行为记录，分析行为结构、小时节律、商品表现与用户分层，并提出可验证的运营假设。</p>
+          <p class="stack">DuckDB · SQL · Plotly · K-Means</p>
+          <div class="actions">
+            <a class="button primary" href="./taobao/">查看在线报告</a>
+            <a class="button" href="https://github.com/Observl/BigDataAnalysisPortfolio/tree/main/淘宝用户购物行为分析">查看源代码</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <span class="status">数据分析项目</span>
+          <h3>电动汽车企业竞争分析</h3>
+          <p>整理 2015—2023 年中国汽车厂商与车型月度销售数据，为市场趋势和企业竞争分析提供数据基础。</p>
+          <p class="stack">Excel · 行业数据 · 竞争分析</p>
+          <div class="actions">
+            <a class="button" href="https://github.com/Observl/BigDataAnalysisPortfolio/tree/main/电动汽车企业竞争分析">查看仓库资料</a>
+          </div>
+        </article>
+
+        <article class="card">
+          <span class="status">数据项目</span>
+          <h3>Global EV Market Analysis</h3>
+          <p>汇总全球电动汽车市场、品牌销量、充电设施及相关月度趋势数据，为后续市场分析提供结构化数据集。</p>
+          <p class="stack">CSV · 数据整理 · 市场分析</p>
+          <div class="actions">
+            <a class="button" href="https://github.com/Observl/BigDataAnalysisPortfolio/tree/main/Global%20EV%20Market%20Analysis">查看仓库资料</a>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <footer>所有分析结论均受数据范围与观察窗口限制，项目页面中会说明具体指标口径和分析边界。</footer>
+  </main>
+</body>
+</html>

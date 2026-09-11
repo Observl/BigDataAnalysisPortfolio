@@ -6,6 +6,8 @@
 
 项目属于探索性作品集分析，重点展示大规模数据处理、指标设计、可视化和业务解释能力。分析结果仅适用于当前样本期，不用于判断淘宝的长期经营趋势，也不代表因果关系或正式营收预测。
 
+**在线查看：** [GitHub Pages 交互式分析报告](https://observl.github.io/BigDataAnalysisPortfolio/taobao/)
+
 ## 技术方案
 
 **技术栈：** Python、DuckDB、SQL、Pandas、Plotly、Scikit-learn
@@ -78,4 +80,3 @@
    ```
 
 首次运行会在本地创建 `UserBehavior.db`。原始 CSV 与数据库文件体积较大，已通过 `.gitignore` 排除，不随 Git 仓库提交。
-
