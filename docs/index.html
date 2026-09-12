@@ -40,6 +40,48 @@
       padding: 72px 0 48px;
     }
 
+    .site-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: clamp(28px, 7vw, 96px);
+    }
+
+    .header-copy { min-width: 0; }
+
+    .profile {
+      flex: 0 0 auto;
+      width: clamp(132px, 17vw, 184px);
+      margin: 2px 0 0;
+      text-align: center;
+    }
+
+    .avatar-frame {
+      width: 100%;
+      aspect-ratio: 1;
+      overflow: hidden;
+      border-radius: 50%;
+      background: #ffffff;
+      box-shadow: 0 14px 30px rgba(79, 48, 139, .23), 0 0 0 3px #8b5cf6, 0 0 0 8px rgba(255,255,255,.88);
+    }
+
+    .avatar-frame img {
+      display: block;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      object-position: 48% 31%;
+    }
+
+    .profile figcaption {
+      margin-top: 9px;
+      color: #5d3d84;
+      font-size: .8rem;
+      font-weight: 750;
+      letter-spacing: .04em;
+    }
+
     .eyebrow {
       margin: 0 0 12px;
       color: var(--primary);
@@ -207,12 +249,17 @@
     }
 
     @media (max-width: 860px) {
+      .site-header { gap: 22px; }
+      .profile { width: 116px; }
       .grid { grid-template-columns: 1fr; }
       .card { min-height: 0; }
     }
 
     @media (max-width: 560px) {
       .page { width: min(100% - 28px, 1120px); padding-top: 48px; }
+      .site-header { align-items: center; gap: 15px; }
+      .profile { width: 92px; }
+      .profile figcaption { margin-top: 6px; font-size: .72rem; }
       .section-heading { align-items: flex-start; flex-direction: column; }
       .card { padding: 22px; }
     }
@@ -224,18 +271,26 @@
 </head>
 <body>
   <main class="page">
-    <header>
-      <p class="eyebrow">Data Analysis Portfolio</p>
-      <h1>大数据分析作品集展示</h1>
-      <p class="intro">这里收录了用户行为与汽车行业相关的数据分析项目，覆盖数据清洗、SQL 聚合、交互式可视化、用户分群和业务建议。</p>
-      <ul class="skills" aria-label="主要技能">
-        <li>Python</li>
-        <li>SQL</li>
-        <li>DuckDB</li>
-        <li>Pandas</li>
-        <li>Plotly</li>
-        <li>Scikit-learn</li>
-      </ul>
+    <header class="site-header">
+      <div class="header-copy">
+        <p class="eyebrow">Data Analysis Portfolio</p>
+        <h1>大数据分析作品集展示</h1>
+        <p class="intro">这里收录了用户行为与汽车行业相关的数据分析项目，覆盖数据清洗、SQL 聚合、交互式可视化、用户分群和业务建议。</p>
+        <ul class="skills" aria-label="主要技能">
+          <li>Python</li>
+          <li>SQL</li>
+          <li>DuckDB</li>
+          <li>Pandas</li>
+          <li>Plotly</li>
+          <li>Scikit-learn</li>
+        </ul>
+      </div>
+      <figure class="profile">
+        <div class="avatar-frame">
+          <img src="./assets/observl-avatar.png" alt="ObservL 的个人头像">
+        </div>
+        <figcaption>@ObservL</figcaption>
+      </figure>
     </header>
 
     <section aria-labelledby="projects-title">
