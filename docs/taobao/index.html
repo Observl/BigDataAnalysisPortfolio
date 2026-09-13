@@ -1,4 +1,4 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="淘宝用户购物行为交互式分析报告：基于 Notebook 已保存输出。"><title>淘宝用户购物行为分析 | 交互式报告</title><style>body{margin:0;background:#fff;color:#241a34;font:16px/1.7 Inter,"PingFang SC","Microsoft YaHei",sans-serif}main{width:min(1120px,calc(100% - 32px));margin:auto;padding:40px 0 64px}h1,h2,h3{line-height:1.25}h1{font-size:2.2rem;border-bottom:2px solid #7c3aed;padding-bottom:.5rem}h2{margin-top:2.8rem;color:#592694}p{margin:1rem 0}table{width:100%;border-collapse:collapse;margin:1rem 0;overflow:hidden;border-radius:8px}th{background:#f3edff}th,td{padding:.6rem;border:1px solid #e8e0f1;text-align:left}code,pre{font-family:ui-monospace,SFMono-Regular,Consolas,"Microsoft YaHei",monospace}pre{overflow:auto;padding:1rem;background:#fbf9fd;border-radius:8px}.code{margin:1rem 0;border:1px solid #e8e0f1;border-radius:8px;padding:.6rem 1rem}.code summary{cursor:pointer;color:#6425c7;font-weight:600}.cell-output{margin:1.2rem 0 2rem;overflow-x:auto}.code pre code.hljs{display:block;color:#241a34;background:transparent;line-height:1.7}.code .hljs-keyword,.code .hljs-literal,.code .hljs-built_in,.code .hljs-string,.code .hljs-meta .hljs-string,.code .hljs-comment,.code .hljs-title.function_,.code .hljs-function .hljs-title,.code .hljs-number,.code .hljs-params,.code .hljs-library-method{background-size:100% 1.7em;background-repeat:repeat-y;-webkit-background-clip:text;background-clip:text;color:transparent}.code .hljs-keyword,.code .hljs-literal,.code .hljs-built_in{background-image:linear-gradient(to bottom,#c4b5fd,#5b21b6);font-weight:650}.code .hljs-string,.code .hljs-meta .hljs-string{background-image:linear-gradient(to bottom,#e6b980,#7c3f12)}.code .hljs-comment{background-image:linear-gradient(to bottom,#2dd4bf,#0f766e);font-style:italic}.code .hljs-title.function_,.code .hljs-function .hljs-title{background-image:linear-gradient(to bottom,#fb7185,#9f1239)}.code .hljs-number{background-image:linear-gradient(to bottom,#38bdf8,#075985)}.code .hljs-params{background-image:linear-gradient(to bottom,#94a3b8,#334155)}.code .hljs-library-method{background-image:linear-gradient(to bottom,#22d3ee,#0e7490);font-weight:650}.plotly-graph-div{width:100%!important;min-height:480px}.output-image{max-width:100%;height:auto}a{color:#6425c7}@media(max-width:560px){main{width:min(100% - 22px,1120px);padding-top:24px}h1{font-size:1.7rem}.plotly-graph-div{min-height:360px}}</style><script src="./assets/plotly-2.35.2.min.js"></script><script src="./assets/highlight-11.12.0.min.js"></script></head><body><main><section aria-label="淘宝用户购物行为分析横幅" style="position:relative;overflow:hidden;margin:0 0 34px;border-radius:22px;background:#f6f2ff;box-shadow:0 18px 45px rgba(91,33,182,.11)"><img src="../assets/banners/taobao-user-behavior.png" alt="电商用户行为与数据分析的抽象视觉" style="display:block;width:100%;height:clamp(220px,27vw,390px);object-fit:cover;object-position:center"><span aria-hidden="true" style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.02) 48%,rgba(255,255,255,.82) 100%)"></span></section><section class="markdown"><h1>淘宝用户购物行为</h1>
+<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="description" content="淘宝用户购物行为交互式分析报告：基于 Notebook 已保存输出。"><title>淘宝用户购物行为分析 | 交互式报告</title><style>body{margin:0;background:#fff;color:#241a34;font:16px/1.7 Inter,"PingFang SC","Microsoft YaHei",sans-serif}main{width:min(1120px,calc(100% - 32px));margin:auto;padding:40px 0 64px}h1,h2,h3{line-height:1.25}h1{font-size:2.2rem;border-bottom:2px solid #7c3aed;padding-bottom:.5rem}h2{margin-top:2.8rem;color:#592694}p{margin:1rem 0}table{width:100%;border-collapse:collapse;margin:1rem 0;overflow:hidden;border-radius:8px}th{background:#f3edff}th,td{padding:.6rem;border:1px solid #e8e0f1;text-align:left}code,pre{font-family:ui-monospace,SFMono-Regular,Consolas,"Microsoft YaHei",monospace}pre{overflow:auto;padding:1rem;background:#fbf9fd;border-radius:8px}.code{margin:1rem 0;border:1px solid #e8e0f1;border-radius:8px;padding:.6rem 1rem}.code summary{cursor:pointer;color:#6425c7;font-weight:600}.cell-output{margin:1.2rem 0 2rem;overflow-x:auto}.code pre code.hljs{display:block;color:#241a34;background:transparent;line-height:1.7}.code .hljs-keyword,.code .hljs-literal,.code .hljs-built_in,.code .hljs-string,.code .hljs-meta .hljs-string,.code .hljs-comment,.code .hljs-title.function_,.code .hljs-function .hljs-title,.code .hljs-number,.code .hljs-params,.code .hljs-library-method{background-size:100% 1.7em;background-repeat:repeat-y;-webkit-background-clip:text;background-clip:text;color:transparent}.code .hljs-keyword,.code .hljs-literal,.code .hljs-built_in{background-image:linear-gradient(to bottom,#c4b5fd,#5b21b6);font-weight:650}.code .hljs-string,.code .hljs-meta .hljs-string{background-image:linear-gradient(to bottom,#e6b980,#7c3f12)}.code .hljs-comment{background-image:linear-gradient(to bottom,#2dd4bf,#0f766e);font-style:italic}.code .hljs-title.function_,.code .hljs-function .hljs-title{background-image:linear-gradient(to bottom,#fb7185,#9f1239)}.code .hljs-number{background-image:linear-gradient(to bottom,#38bdf8,#075985)}.code .hljs-params{background-image:linear-gradient(to bottom,#94a3b8,#334155)}.code .hljs-library-method{background-image:linear-gradient(to bottom,#22d3ee,#0e7490);font-weight:650}.plotly-graph-div{width:100%!important;min-height:480px}.output-image{max-width:100%;height:auto}a{color:#6425c7}@media(max-width:560px){main{width:min(100% - 22px,1120px);padding-top:24px}h1{font-size:1.7rem}.plotly-graph-div{min-height:360px}}</style><script src="./assets/plotly-2.35.2.min.js"></script><script src="./assets/highlight-11.12.0.min.js"></script><link rel="stylesheet" href="../assets/project-outline.css"><script src="../assets/project-outline.js" defer></script></head><body><main><section aria-label="淘宝用户购物行为分析横幅" style="position:relative;overflow:hidden;margin:0 0 34px;border-radius:22px;background:#f6f2ff;box-shadow:0 18px 45px rgba(91,33,182,.11)"><img src="../assets/banners/taobao-user-behavior.png" alt="电商用户行为与数据分析的抽象视觉" style="display:block;width:100%;height:clamp(220px,27vw,390px);object-fit:cover;object-position:center"><span aria-hidden="true" style="position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.02) 48%,rgba(255,255,255,.82) 100%)"></span></section><section class="markdown"><h1>淘宝用户购物行为</h1>
 <h2>概述</h2>
 <p>本数据集包含了2017年11月25日至2017年12月3日之间，有行为的约一百万随机用户的所有行为（行为包括点击、购买、加购、喜欢）。数据集的组织形式和MovieLens-20M类似，即数据集的每一行表示一条用户行为，由用户ID、商品ID、商品类目ID、行为类型和时间戳组成，并以逗号分隔。<br></p>
 <h2>数据范围</h2>
@@ -48,8 +48,8 @@ _.execute(&quot;&quot;&quot;
 &quot;&quot;&quot;)
 
 _.close()
-print(&#x27;数据库创建成功！&#x27;)</code></pre></details><section class="cell-output stream"><pre>数据库创建成功！
-</pre></section><section class="markdown"><hr></section><section class="markdown"><h1>数据清洗</h1></section><section class="markdown"><p>经检查发现原csv文件体量过大，包含一亿条数据，大小高达数GB，对于传统的pandas数据分析会导致电脑内存溢出导致电脑死机。<br> 针对源文件数据量过大的问题，我们最终决定使用在处理大量数据时比较优秀的duckdb来创建数据库，并直接在database中使用SQL语言进行数据清洗。</p></section><details class="code"><summary>Python 代码</summary><pre><code class="language-python">_ = duckdb.connect(db)
+print(&#x27;数据库创建成功！&#x27;)</code></pre></details><section class="cell-output output-fence" aria-label="Notebook 输出"><div class="fence-label">输出</div><pre><code class="language-text">数据库创建成功！
+</code></pre></section><section class="markdown"><hr></section><section class="markdown"><h1>数据清洗</h1></section><section class="markdown"><p>经检查发现原csv文件体量过大，包含一亿条数据，大小高达数GB，对于传统的pandas数据分析会导致电脑内存溢出导致电脑死机。<br> 针对源文件数据量过大的问题，我们最终决定使用在处理大量数据时比较优秀的duckdb来创建数据库，并直接在database中使用SQL语言进行数据清洗。</p></section><details class="code"><summary>Python 代码</summary><pre><code class="language-python">_ = duckdb.connect(db)
 
 #清除重复值
 _.execute(&quot;&quot;&quot;
@@ -83,8 +83,8 @@ _.execute(&quot;&quot;&quot;
 
 print(&#x27;数据清洗完成！&#x27;)
 _.close()
-</code></pre></details><section class="cell-output stream"><pre>数据清洗完成！
-</pre></section><section class="markdown"><hr></section><section class="markdown"><h1>数据格式化</h1>
+</code></pre></details><section class="cell-output output-fence" aria-label="Notebook 输出"><div class="fence-label">输出</div><pre><code class="language-text">数据清洗完成！
+</code></pre></section><section class="markdown"><hr></section><section class="markdown"><h1>数据格式化</h1>
 <p>设置时区，转化为可读时间，并摘出时间特征用于后续时间序列分析。</p></section><details class="code"><summary>Python 代码</summary><pre><code class="language-python">_ = duckdb.connect(db)
 #摘取时间特征信息辅助进行根据时间序列的数据分析
 _.execute(&quot;SET TimeZone = &#x27;Asia/Shanghai&#x27;;&quot;)
@@ -129,12 +129,12 @@ _.execute(&quot;&quot;&quot;
 _.close()</code></pre></details><details class="code"><summary>Python 代码</summary><pre><code class="language-python">#检查宏观数据
 _ = duckdb.connect(db)
 print(_.execute(&quot;SELECT * FROM macro LIMIT 5;&quot;).fetchdf())
-_.close()</code></pre></details><section class="cell-output stream"><pre>      总浏览次数    总收藏次数   总购物车次数    总喜爱次数    总购买次数  浏览转收藏比  浏览转购物车比  收藏转购买比  \
+_.close()</code></pre></details><section class="cell-output output-fence" aria-label="Notebook 输出"><div class="fence-label">输出</div><pre><code class="language-text">      总浏览次数    总收藏次数   总购物车次数    总喜爱次数    总购买次数  浏览转收藏比  浏览转购物车比  收藏转购买比  \
 0  89660671  2849712  5488279  8337991  2001673    3.18     6.12   70.24   
 
    购物车转购买比  浏览转购买比  
 0    36.47    2.23  
-</pre></section><details class="code"><summary>Python 代码</summary><pre><code class="language-python">#读取绘制图所需数据
+</code></pre></section><details class="code"><summary>Python 代码</summary><pre><code class="language-python">#读取绘制图所需数据
 _ = duckdb.connect(db)
 df = _.execute(&quot;SELECT 总浏览次数,总喜爱次数,总购买次数 FROM macro&quot;).fetchdf()
 _.close()</code></pre></details><details class="code"><summary>Python 代码</summary><pre><code class="language-python">#绘制漏斗图
@@ -877,7 +877,7 @@ df[&#x27;cluster&#x27;] = kmeans.fit_predict(X)
 
 cluster_summary = df.groupby(&#x27;cluster&#x27;)[feature_columns].mean()
 print(cluster_summary)
-print(df[&#x27;cluster&#x27;].value_counts())</code></pre></details><section class="cell-output stream"><pre>              浏览商品数      活跃天数     总购买次数
+print(df[&#x27;cluster&#x27;].value_counts())</code></pre></details><section class="cell-output output-fence" aria-label="Notebook 输出"><div class="fence-label">输出</div><pre><code class="language-text">              浏览商品数      活跃天数     总购买次数
 cluster                                
 0         36.183154  5.071376  1.148749
 1        173.621295  8.474798  5.116969
@@ -887,7 +887,7 @@ cluster
 0    336204
 1    172781
 Name: count, dtype: int64
-</pre></section><section class="markdown"><p>肘部法通过比较K=1至10时的簇内平方和，为聚类数量的选择提供依据。当曲线在K=3附近由快速下降转为相对平缓时，继续增加聚类数量带来的改善已经减弱，因此K=3可以在聚类紧密度和分群可解释性之间取得平衡。肘部法提供的是经验依据，不是严格的数学证明。<br> 使用K-Means将用户划分为三类，以便比较样本期内不同群体的行为特征。互动商品数、活跃天数和购买行为次数较高的群体可作为高价值用户观察组，各项指标较低的群体可作为非核心用户观察组，其余群体作为常规用户观察组。</p></section><details class="code"><summary>Python 代码</summary><pre><code class="language-python">#按照实际聚类特征自动生成标签，并按cluster索引对齐气泡大小
+</code></pre></section><section class="markdown"><p>肘部法通过比较K=1至10时的簇内平方和，为聚类数量的选择提供依据。当曲线在K=3附近由快速下降转为相对平缓时，继续增加聚类数量带来的改善已经减弱，因此K=3可以在聚类紧密度和分群可解释性之间取得平衡。肘部法提供的是经验依据，不是严格的数学证明。<br> 使用K-Means将用户划分为三类，以便比较样本期内不同群体的行为特征。互动商品数、活跃天数和购买行为次数较高的群体可作为高价值用户观察组，各项指标较低的群体可作为非核心用户观察组，其余群体作为常规用户观察组。</p></section><details class="code"><summary>Python 代码</summary><pre><code class="language-python">#按照实际聚类特征自动生成标签，并按cluster索引对齐气泡大小
 cluster_sizes = df[&#x27;cluster&#x27;].value_counts().reindex(cluster_summary.index)
 
 standardized_cluster_summary = (

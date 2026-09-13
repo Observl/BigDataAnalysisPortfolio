@@ -22,7 +22,7 @@
 <script src="../taobao/assets/plotly-2.35.2.min.js"></script>
 <script src="../taobao/assets/highlight-11.12.0.min.js"></script>
 <script>window.addEventListener('DOMContentLoaded',function(){function annotateLibraryMethods(code){const walker=document.createTreeWalker(code,NodeFilter.SHOW_TEXT);const nodes=[];while(walker.nextNode()){const parent=walker.currentNode.parentElement;if(!parent.closest('.hljs-string,.hljs-comment'))nodes.push(walker.currentNode)}nodes.forEach(node=>{const parts=node.nodeValue.split(/(\.)([A-Za-z_]\w*)(?=\s*\()/g);if(parts.length===1)return;const fragment=document.createDocumentFragment();for(let index=0;index<parts.length;index+=1){if(index%3===2){const span=document.createElement('span');span.className='hljs-library-method';span.textContent=parts[index];fragment.append(span)}else{fragment.append(document.createTextNode(parts[index]))}}node.replaceWith(fragment)})}document.querySelectorAll('details.code pre > code.language-python').forEach(code=>{hljs.highlightElement(code);annotateLibraryMethods(code)})});</script>
-</head>
+<link rel="stylesheet" href="../assets/project-outline.css"><script src="../assets/project-outline.js" defer></script></head>
 <body><main>
 <section class="project-banner" aria-label="新能源汽车经营分析横幅"><img src="../assets/banners/nev-operations.png" alt="新能源汽车经营分析项目横幅：电动汽车与经营数据的抽象视觉"></section>
 <p><a href="../index.html">← 返回作品集首页</a></p>
@@ -83,7 +83,7 @@ for sheet_name in excel_file:
     df = pd.read_excel(sheet_name)
     print(df.head())
     print(&quot;\n&quot;)</code></pre></details>
-<section class="cell-output stream"><pre>Sheet: 中国汽车总体销量.xlsx
+<section class="cell-output output-fence" aria-label="Notebook 输出"><div class="fence-label">输出</div><pre><code class="language-text">Sheet: 中国汽车总体销量.xlsx
           时间       销量      同比
 0 2023-09-01  2019445 -0.1125
 1 2023-08-01  1922495 -0.1339
@@ -110,7 +110,7 @@ Sheet: 中国电动车每月销售表.xlsx
 4  2023   1   5   特斯拉中国   Model Y  14184  25.99 - 35.99
 
 
-</pre></section>
+</code></pre></section>
 <details class="code"><summary>Python 代码</summary><pre><code class="language-python"># TODO：读取新能源汽车、整体汽车和总体销量数据
 _ = duckdb.connect(db)
 
@@ -154,19 +154,19 @@ v_df = pd.read_sql(&quot;SELECT * FROM V_Sales&quot;, duckdb.connect(db))
 ev_df = pd.read_sql(&quot;SELECT * FROM EV_Sales&quot;, duckdb.connect(db))
 
 dfs = [ts_df, v_df, ev_df]</code></pre></details>
-<section class="cell-output stream"><pre>C:\Users\13485\AppData\Local\Temp\ipykernel_29488\819704523.py:2: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+<section class="cell-output output-fence" aria-label="Notebook 输出"><div class="fence-label">输出</div><pre><code class="language-text">C:\Users\13485\AppData\Local\Temp\ipykernel_29488\819704523.py:2: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
   ts_df = pd.read_sql(&quot;SELECT * FROM Total_Sales&quot;, duckdb.connect(db))
 C:\Users\13485\AppData\Local\Temp\ipykernel_29488\819704523.py:3: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
   v_df = pd.read_sql(&quot;SELECT * FROM V_Sales&quot;, duckdb.connect(db))
 C:\Users\13485\AppData\Local\Temp\ipykernel_29488\819704523.py:4: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
   ev_df = pd.read_sql(&quot;SELECT * FROM EV_Sales&quot;, duckdb.connect(db))
-</pre></section>
+</code></pre></section>
 <details class="code"><summary>Python 代码</summary><pre><code class="language-python"># TODO：查看时间范围、统计粒度、销量单位和样例记录
 for df in dfs:
     print(f&quot;字段: {df.columns.tolist()}&quot;)
     print(f&quot;时间范围: {df[&#x27;time&#x27;].min()} to {df[&#x27;time&#x27;].max()}&quot; if &#x27;time&#x27; in df.columns else f&quot;Year Range: {df[&#x27;year&#x27;].min()} to {df[&#x27;year&#x27;].max()}&quot;)
     print(f&quot;样例记录:\n{df.head()}\n&quot;)</code></pre></details>
-<section class="cell-output stream"><pre>字段: [&#x27;time&#x27;, &#x27;total_sales&#x27;, &#x27;yoy_growth&#x27;]
+<section class="cell-output output-fence" aria-label="Notebook 输出"><div class="fence-label">输出</div><pre><code class="language-text">字段: [&#x27;time&#x27;, &#x27;total_sales&#x27;, &#x27;yoy_growth&#x27;]
 时间范围: 2007-01-01 to 2023-09-01
 样例记录:
          time  total_sales  yoy_growth
@@ -196,7 +196,7 @@ Year Range: 2015.0 to 2023.0
 3  2023.0    1.0     元PLUS          比亚迪  14342.0  13.58 - 16.78
 4  2023.0    1.0   Model Y        特斯拉中国  14184.0  25.99 - 35.99
 
-</pre></section>
+</code></pre></section>
 <section class="markdown"><p>记录数据文件来源、版本和最新更新时间<br> 数据文档 【中国电动汽车销售数据】2015~2023年各厂商各车型 <br> 一、数据介绍 <br> 数据范围：年份，月份 <br> 数据年份：2015~2023/11月 <br> 样本数量：三张表 <br> 三、数据概览 <br> excel格式</p></section>
 <section class="markdown"><hr>
 <h1>数据质量检查</h1>
@@ -215,7 +215,7 @@ for df in dfs:
     print(&quot;\n&quot;)
 
 _.close()</code></pre></details>
-<section class="cell-output stream"><pre>检查表: [&#x27;time&#x27;, &#x27;total_sales&#x27;, &#x27;yoy_growth&#x27;]
+<section class="cell-output output-fence" aria-label="Notebook 输出"><div class="fence-label">输出</div><pre><code class="language-text">检查表: [&#x27;time&#x27;, &#x27;total_sales&#x27;, &#x27;yoy_growth&#x27;]
 字段类型:
 time            object
 total_sales    float64
@@ -278,7 +278,7 @@ dtype: int64
 167
 
 
-</pre></section>
+</code></pre></section>
 <details class="code"><summary>Python 代码</summary><pre><code class="language-python"># TODO：检查年月连续性、缺失月份和数据截止月份
 for df in dfs:
     if &#x27;year&#x27; in df.columns and &#x27;month&#x27; in df.columns:
@@ -288,7 +288,7 @@ for df in dfs:
         print(f&quot;检查表: {df.columns.tolist()}&quot;)
         print(f&quot;数据截止月份: {df[&#x27;date&#x27;].max()}&quot;)
         print(f&quot;缺失月份: {missing_dates}\n&quot;)</code></pre></details>
-<section class="cell-output stream"><pre>检查表: [&#x27;year&#x27;, &#x27;month&#x27;, &#x27;model&#x27;, &#x27;manufacturer&#x27;, &#x27;sales&#x27;, &#x27;price&#x27;, &#x27;date&#x27;]
+<section class="cell-output output-fence" aria-label="Notebook 输出"><div class="fence-label">输出</div><pre><code class="language-text">检查表: [&#x27;year&#x27;, &#x27;month&#x27;, &#x27;model&#x27;, &#x27;manufacturer&#x27;, &#x27;sales&#x27;, &#x27;price&#x27;, &#x27;date&#x27;]
 数据截止月份: 2023-09-01 00:00:00
 缺失月份: DatetimeIndex([], dtype=&#x27;datetime64[us]&#x27;, freq=&#x27;MS&#x27;)
 
@@ -296,14 +296,14 @@ for df in dfs:
 数据截止月份: 2023-10-01 00:00:00
 缺失月份: DatetimeIndex([], dtype=&#x27;datetime64[us]&#x27;, freq=&#x27;MS&#x27;)
 
-</pre></section>
+</code></pre></section>
 <details class="code"><summary>Python 代码</summary><pre><code class="language-python"># TODO：检查负销量
 for df in dfs:
     if &#x27;sales&#x27; in df.columns:
         negative_sales = df[df[&#x27;sales&#x27;] &lt; 0]
         print(f&quot;检查表: {df.columns.tolist()}&quot;)
         print(f&quot;负销量记录:\n{negative_sales}\n&quot;)</code></pre></details>
-<section class="cell-output stream"><pre>检查表: [&#x27;year&#x27;, &#x27;month&#x27;, &#x27;model&#x27;, &#x27;manufacturer&#x27;, &#x27;sales&#x27;, &#x27;price&#x27;, &#x27;date&#x27;]
+<section class="cell-output output-fence" aria-label="Notebook 输出"><div class="fence-label">输出</div><pre><code class="language-text">检查表: [&#x27;year&#x27;, &#x27;month&#x27;, &#x27;model&#x27;, &#x27;manufacturer&#x27;, &#x27;sales&#x27;, &#x27;price&#x27;, &#x27;date&#x27;]
 负销量记录:
 Empty DataFrame
 Columns: [year, month, model, manufacturer, sales, price, date]
@@ -315,7 +315,7 @@ Empty DataFrame
 Columns: [year, month, model, manufacturer, sales, price, date]
 Index: []
 
-</pre></section>
+</code></pre></section>
 <section class="markdown"><h3>数据质量记录</h3>
 <p>&lt;!-- 建议记录：发现了什么问题、如何处理、处理后是否仍有影响。例如：某月份缺少记录，因此不参与环比计算。 --&gt;</p></section>
 <section class="markdown"><hr>
@@ -341,7 +341,7 @@ for df in dfs:
     if &#x27;sales&#x27; in df.columns:
         negative_sales = df[df[&#x27;sales&#x27;] &lt; 0]
         print(f&quot;负销量记录:\n{negative_sales}\n&quot;)</code></pre></details>
-<section class="cell-output stream"><pre>检查表: [&#x27;time&#x27;, &#x27;total_sales&#x27;, &#x27;yoy_growth&#x27;]
+<section class="cell-output output-fence" aria-label="Notebook 输出"><div class="fence-label">输出</div><pre><code class="language-text">检查表: [&#x27;time&#x27;, &#x27;total_sales&#x27;, &#x27;yoy_growth&#x27;]
 字段类型:
 time            object
 total_sales    float64
@@ -418,7 +418,7 @@ Empty DataFrame
 Columns: [year, month, model, manufacturer, sales, price, date]
 Index: []
 
-</pre></section>
+</code></pre></section>
 <section class="markdown"><hr>
 <h1>宏观数据分析</h1>
 <p>这一部分从市场整体出发，比较汽车总销量与新能源汽车销量，并初步了解新能源汽车在汽车市场中的占比、品牌份额和品牌排名变化。</p></section>
