@@ -3,10 +3,98 @@
     return "section-" + (index + 1) + "-" + value.trim().toLowerCase().replace(/[^a-z0-9\u4e00-\u9fff]+/g, "-").replace(/^-|-$/g, "");
   }
 
+  function cloneValue(value) {
+    return JSON.parse(JSON.stringify(value));
+  }
+
+  window.renderResponsiveThreePanel = function (id, figure) {
+    var source = document.getElementById(id);
+    if (!source || !window.Plotly) return;
+
+    var panels = [
+      { x: "x", y: "y", xaxis: "xaxis", yaxis: "yaxis", annotation: 0 },
+      { x: "x2", y: "y2", xaxis: "xaxis2", yaxis: "yaxis2", annotation: 1 },
+      { x: "x3", y: "y3", xaxis: "xaxis3", yaxis: "yaxis3", annotation: 2 }
+    ];
+    var wrapper = document.createElement("div");
+    wrapper.className = "three-panel-wrapper";
+    var grid = document.createElement("div");
+    grid.className = "three-panel-grid";
+    wrapper.appendChild(grid);
+    source.replaceWith(wrapper);
+
+    panels.forEach(function (panel, index) {
+      var card = document.createElement("section");
+      card.className = "three-panel-card";
+      var graph = document.createElement("div");
+      graph.id = id + "-panel-" + (index + 1);
+      graph.className = "plotly-graph-div";
+      graph.setAttribute("aria-label", "交互式图表 " + (index + 1));
+      card.appendChild(graph);
+      grid.appendChild(card);
+
+      var traces = (figure.data || []).filter(function (trace) {
+        return (trace.xaxis || "x") === panel.x && (trace.yaxis || "y") === panel.y;
+      }).map(function (trace) {
+        var copy = cloneValue(trace);
+        delete copy.xaxis;
+        delete copy.yaxis;
+        return copy;
+      });
+      var xaxis = cloneValue((figure.layout || {})[panel.xaxis] || {});
+      var yaxis = cloneValue((figure.layout || {})[panel.yaxis] || {});
+      delete xaxis.domain;
+      delete xaxis.anchor;
+      delete yaxis.domain;
+      delete yaxis.anchor;
+      var annotation = ((figure.layout || {}).annotations || [])[panel.annotation] || {};
+      var layout = {
+        template: (figure.layout || {}).template,
+        height: 470,
+        margin: { l: 82, r: 26, t: 72, b: 76 },
+        title: { text: annotation.text || "", x: 0.5, xanchor: "center", font: { size: 16 } },
+        xaxis: xaxis,
+        yaxis: yaxis,
+        showlegend: true,
+        legend: { orientation: "h", x: 0.5, xanchor: "center", y: -0.27 }
+      };
+      window.Plotly.newPlot(graph, traces, layout, Object.assign({ responsive: true }, figure.config || {}));
+    });
+  }
+
   function resizePlots(container) {
     if (!window.Plotly) return;
     container.querySelectorAll(".plotly-graph-div").forEach(function (graph) {
+      if (!graph._fullLayout) return;
       window.Plotly.Plots.resize(graph);
+    });
+  }
+
+  function schedulePlotResize(container) {
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        resizePlots(container);
+      });
+    });
+  }
+
+  function observePlotContainers(main) {
+    if (!window.ResizeObserver) return;
+    var frame = null;
+    var widths = new WeakMap();
+    var observer = new ResizeObserver(function (entries) {
+      if (frame) cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(function () {
+        entries.forEach(function (entry) {
+          var width = Math.round(entry.contentRect.width);
+          if (widths.get(entry.target) === width) return;
+          widths.set(entry.target, width);
+          resizePlots(entry.target);
+        });
+      });
+    });
+    main.querySelectorAll(".chart-output").forEach(function (container) {
+      observer.observe(container);
     });
   }
 
@@ -48,7 +136,7 @@
         var expanded = section.button.getAttribute("aria-expanded") === "true";
         section.button.setAttribute("aria-expanded", String(!expanded));
         content.hidden = expanded;
-        if (!expanded) requestAnimationFrame(function () { resizePlots(content); });
+        if (!expanded) schedulePlotResize(content);
       });
     });
 
@@ -81,6 +169,10 @@
     document.body.insertBefore(aside, main);
 
     if (window.matchMedia("(max-width: 1050px)").matches) details.open = false;
+    window.addEventListener("load", function () {
+      observePlotContainers(main);
+      schedulePlotResize(main);
+    }, { once: true });
     var observer = new IntersectionObserver(function (entries) {
       var visible = entries.filter(function (entry) { return entry.isIntersecting; }).sort(function (a, b) { return b.intersectionRatio - a.intersectionRatio; })[0];
       if (!visible) return;

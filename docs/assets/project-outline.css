@@ -85,6 +85,7 @@ h1.section-toggle { scroll-margin-top: 28px; }
 .cell-output.output-fence {
   position: relative;
   margin: 1.2rem 0 2rem;
+  max-height: 360px;
   overflow: auto;
   border: 1px solid #000;
   border-radius: 8px;
@@ -108,9 +109,44 @@ h1.section-toggle { scroll-margin-top: 28px; }
   color: #fff;
   background: #0c0c0c;
   font-family: Consolas, "Cascadia Mono", monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
-.output-fence code { color: #fff; font-family: Consolas, "Cascadia Mono", monospace; }
+.output-fence code {
+  color: #fff;
+  font-family: Consolas, "Cascadia Mono", monospace;
+  white-space: inherit;
+  overflow-wrap: inherit;
+  word-break: inherit;
+}
+
+.cell-output { max-width: 100%; }
+
+.cell-output.chart-output {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow: visible;
+}
+
+.cell-output.chart-output .plotly-graph-div {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+}
+
+.three-panel-wrapper { container-type: inline-size; }
+.three-panel-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
+.three-panel-card { min-width: 0; padding: .35rem; border: 1px solid #e8e0f1; border-radius: 12px; background: #fff; }
+.three-panel-card .plotly-graph-div { min-height: 470px; }
+
+@container (min-width: 900px) {
+  .three-panel-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
+  .three-panel-card { padding: .2rem; }
+  .three-panel-card .plotly-graph-div { min-height: 470px; }
+}
 
 @media (max-width: 1050px) {
   body.has-project-outline main { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }
