@@ -11,7 +11,7 @@
 | 项目 | 主要内容 | 技术与数据 | 入口 |
 |---|---|---|---|
 | 淘宝用户购物行为分析 | 行为结构、小时节律、商品分析与用户分群 | Python、DuckDB、SQL、Plotly、K-Means | [在线报告](https://observl.github.io/BigDataAnalysisPortfolio/taobao/) · [项目说明](./淘宝用户购物行为分析/README.md) |
-| 新能源汽车经营分析 | 月度销量、同比/环比、品牌排名、车型结构与异常监控 | Python、Pandas、Plotly、Excel | [项目资料](./新能源汽车经营分析/) |
+| 新能源汽车经营分析 | 月度销量趋势、数据质量检查，以及待完善的品牌、车型与异常监控框架 | Python、Pandas、DuckDB、Plotly、Excel | [在线报告](https://observl.github.io/BigDataAnalysisPortfolio/nev/) · [项目说明](./新能源汽车经营分析/README.md) |
 | Global EV Market Analysis | 全球电动汽车市场相关数据集 | CSV、市场数据 | [项目说明](./Global%20EV%20Market%20Analysis/README.md) |
 
 > 大型原始数据和本地数据库文件不随 Git 仓库提交；各项目的数据范围和运行方式见对应说明。

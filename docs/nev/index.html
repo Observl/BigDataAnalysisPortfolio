@@ -1,53 +1,504 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>新能源汽车经营分析｜ObservL 作品集</title>
-  <style>
-    :root { color-scheme: light; }
-    * { box-sizing: border-box; }
-    html, body { min-height: 100%; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      padding: clamp(12px, 2.6vw, 36px);
-      background: #ffffff;
-    }
-    main { width: min(1440px, 100%); }
-    .project-banner {
-      position: relative;
-      overflow: hidden;
-      border-radius: 24px;
-      background: #f6f2ff;
-      box-shadow: 0 18px 45px rgba(91, 33, 182, .11);
-    }
-    .project-banner::after {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background: linear-gradient(180deg, rgba(255,255,255,.02) 44%, rgba(255,255,255,.18) 100%);
-    }
-    .project-banner img {
-      display: block;
-      width: 100%;
-      height: clamp(230px, 35vw, 500px);
-      object-fit: cover;
-      object-position: center;
-    }
-    @media (max-width: 560px) {
-      body { padding: 12px; }
-      .project-banner { border-radius: 16px; }
-      .project-banner img { height: 240px; }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="新能源汽车经营分析交互式报告，基于 Notebook 的已保存输出。">
+<title>新能源汽车经营分析｜交互式报告</title>
+<style>
+:root{color-scheme:light;--ink:#241a34;--muted:#6d6479;--line:#e8e0f1;--primary:#6425c7;--soft:#f3edff}*{box-sizing:border-box}body{margin:0;background:#fff;color:var(--ink);font:16px/1.7 Inter,"PingFang SC","Microsoft YaHei",sans-serif}main{width:min(1120px,calc(100% - 32px));margin:auto;padding:32px 0 64px}.project-banner{position:relative;overflow:hidden;margin:0 0 34px;border-radius:24px;background:#f6f2ff;box-shadow:0 18px 45px rgba(91,33,182,.11)}.project-banner:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.02) 44%,rgba(255,255,255,.18) 100%)}.project-banner img{display:block;width:100%;height:clamp(230px,35vw,500px);object-fit:cover;object-position:center}h1,h2,h3{line-height:1.25}h1{font-size:2.2rem;border-bottom:2px solid #7c3aed;padding-bottom:.5rem}h2{margin-top:2.8rem;color:#592694}h3{margin-top:1.8rem}p{margin:1rem 0}table{width:100%;border-collapse:collapse;margin:1rem 0;overflow:hidden;border-radius:8px}th{background:var(--soft)}th,td{padding:.6rem;border:1px solid var(--line);text-align:left;vertical-align:top}code,pre{font-family:ui-monospace,SFMono-Regular,Consolas,"Microsoft YaHei",monospace}pre{overflow:auto;padding:1rem;background:#fbf9fd;border-radius:8px;white-space:pre}.code{margin:1rem 0;border:1px solid var(--line);border-radius:8px;padding:.6rem 1rem}.code summary{cursor:pointer;color:var(--primary);font-weight:600}.code pre{padding:0;background:transparent}.cell-output{margin:1.2rem 0 2rem;overflow-x:auto}.stream pre{border-left:3px solid #c4b5fd}.error pre{border-left:3px solid #ef4444}.plotly-graph-div{width:100%!important;min-height:480px}.output-image{max-width:100%;height:auto}blockquote{margin:1rem 0;padding:.5rem 1rem;border-left:4px solid #c4b5fd;background:#fbf9fd;color:var(--muted)}a{color:var(--primary)}@media(max-width:560px){main{width:min(100% - 22px,1120px);padding-top:16px}.project-banner{border-radius:16px}.project-banner img{height:240px}h1{font-size:1.7rem}.plotly-graph-div{min-height:360px}}
+</style>
+<script src="../taobao/assets/plotly-2.35.2.min.js"></script>
+<script src="../taobao/assets/highlight-11.12.0.min.js"></script>
+<script>window.addEventListener('DOMContentLoaded',function(){document.querySelectorAll('code.language-python').forEach(function(el){hljs.highlightElement(el);});});</script>
 </head>
-<body>
-  <main>
-    <div class="project-banner">
-      <img src="../assets/banners/nev-operations.png" alt="新能源汽车经营分析项目横幅：电动汽车与经营数据的抽象视觉">
-    </div>
-  </main>
-</body>
-</html>
+<body><main>
+<section class="project-banner" aria-label="新能源汽车经营分析横幅"><img src="../assets/banners/nev-operations.png" alt="新能源汽车经营分析项目横幅：电动汽车与经营数据的抽象视觉"></section>
+<p><a href="../index.html">← 返回作品集首页</a></p>
+<section class="markdown"><h1>新能源汽车经营分析</h1>
+<h2>项目概述</h2>
+<p>这是一个面向实习面试的新能源汽车销售数据分析项目。我会使用中国新能源汽车及整体汽车的月度销量数据，跟踪销量、同比、环比、市场份额、品牌排名和车型结构。</p>
+<p>项目希望练习从原始数据整理、指标计算、图表展示到业务解读的完整过程。分析中会把“数据观察”“可能原因”和“待验证假设”分开写，避免把销量变化直接当作因果结论。</p>
+<h3>数据范围（读取后补充）</h3>
+<table><thead><tr><th>项目</th><th>内容</th></tr></thead><tbody><tr><td>数据起止月份</td><td>预计为2015年至2023年11月，待读取确认</td></tr><tr><td>更新周期</td><td>月度</td></tr><tr><td>统计粒度</td><td>厂商/品牌/车型/月，待读取确认</td></tr><tr><td>数据来源</td><td>项目目录中的Excel数据及说明文件</td></tr><tr><td>最新更新时间</td><td>待填写</td></tr></tbody></table>
+<blockquote><p>如果2023年只覆盖1—11月，年度比较必须采用同周期口径，不与完整年度直接比较。</p></blockquote>
+<h3>AI使用情况</h3>
+<ul><li>使用AI辅助梳理分析框架和检查代码思路。</li><li>后续如使用AI辅助代码编写、纠错或文案整理，会在此补充说明。</li></ul></section>
+<section class="markdown"><h1>经营监控目标</h1>
+<ol><li>了解新能源汽车销量、同比/环比、市场份额、品牌排名和车型结构的月度变化。</li><li>用清晰的阈值找出销量、份额或排名变化较大的月份。</li><li>练习区分数据事实、可能解释和还需要验证的假设。</li><li>尝试使用Plotly制作可筛选的Notebook内看板。</li><li>最后整理一页简洁的月度摘要，方便复盘重点变化。</li></ol></section>
+<section class="markdown"><hr>
+<h1>初始化与运行参数</h1>
+<p>运行前请确保已安装：<code>pandas</code>、<code>numpy</code>、<code>plotly</code>。</p></section>
+<details class="code"><summary>Python 代码</summary><pre><code class="language-python"># 数据处理
+import pandas as pd
+import numpy as np
+import duckdb
+
+# 文件与路径管理
+from pathlib import Path
+import openpyxl
+
+# 可视化
+import plotly.express as px
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import plotly.io as pio
+
+# 辅助工具
+import warnings
+
+# Plotly 默认主题
+pio.templates.default = &quot;plotly_white&quot;</code></pre></details>
+<section class="markdown"><hr>
+<h1>指标口径与异常规则</h1>
+<h2>核心指标</h2>
+<table><thead><tr><th>指标</th><th>本项目口径</th></tr></thead><tbody><tr><td>月销量</td><td>对象在自然月内的销量合计</td></tr><tr><td>同比增长率</td><td>当月销量相对上年同月销量的变化率</td></tr><tr><td>环比增长率</td><td>当月销量相对上月销量的变化率</td></tr><tr><td>品牌市场份额</td><td>品牌当月销量 ÷ 同期新能源汽车市场总销量</td></tr><tr><td>品牌销量排名</td><td>按同月品牌销量降序排列</td></tr><tr><td>排名变化</td><td>当月排名与上月排名之差</td></tr><tr><td>车型销量贡献率</td><td>车型当月销量 ÷ 所属品牌当月销量</td></tr><tr><td>TOP1/TOP3集中度</td><td>品牌销量最高的1/3款车型销量之和 ÷ 品牌当月销量</td></tr></tbody></table>
+<h2>默认异常规则</h2>
+<ul><li>销量同比绝对变化达到30%。</li><li>销量环比绝对变化达到20%。</li><li>市场份额单月绝对变化达到2个百分点。</li><li>品牌排名单月变化达到3位。</li><li>低于最低销量基数的对象不直接标记为经营异常，单列为“低基数波动”。</li><li>新进入或上月无销量的对象标记为“新增记录”，不计算普通环比。</li><li>同比基期无销量时不计算同比，避免除零或误导。</li></ul>
+<blockquote><p>最低销量基数会在查看数据分布后再确定。本项目先使用这些规则进行初步筛选，异常结果仍需要结合具体品牌和车型进一步判断。</p></blockquote></section>
+<section class="markdown"><hr>
+<h1>数据导入与数据理解</h1>
+<p>先读取新能源汽车、整体汽车和总体销量数据，检查工作表、字段、统计粒度、时间范围和销量单位。若数据中没有独立品牌字段，暂时使用“厂商”作为品牌分析维度，并在后续说明中记录这一限制。</p></section>
+<details class="code"><summary>Python 代码</summary><pre><code class="language-python"># TODO：设置Excel文件路径
+sheet0 = &#x27;中国汽车总体销量.xlsx&#x27;
+sheet1 = &#x27;中国汽车每月销售表.xlsx&#x27;
+sheet2 = &#x27;中国电动车每月销售表.xlsx&#x27;
+excel_file = [sheet0, sheet1, sheet2]
+
+db = &#x27;Chinese EV Sales Database.db&#x27;</code></pre></details>
+<details class="code"><summary>Python 代码</summary><pre><code class="language-python"># 查看excel文件的字段
+for sheet_name in excel_file:
+    print(f&quot;Sheet: {sheet_name}&quot;)
+    df = pd.read_excel(sheet_name)
+    print(df.head())
+    print(&quot;\n&quot;)</code></pre></details>
+<section class="cell-output stream"><pre>Sheet: 中国汽车总体销量.xlsx
+          时间       销量      同比
+0 2023-09-01  2019445 -0.1125
+1 2023-08-01  1922495 -0.1339
+2 2023-07-01  1781580 -0.1620
+3 2023-06-01  1894250 -0.1254
+4 2023-05-01  1685966  0.0691
+
+
+Sheet: 中国汽车每月销售表.xlsx
+     年份  月份  排名           车型      厂商     销量       售价（万元）
+0  2022   1   1           轩逸    东风日产  61170   9.98-17.49
+1  2022   1   2           朗逸    上汽大众  45524   9.40-15.19
+2  2022   1   3     宏光MINIEV  上汽通用五菱  37048    3.28-9.99
+3  2022   1   4         哈弗H6    长城汽车  35570   9.89-15.70
+4  2022   1   5  长安CS75 PLUS    长安汽车  33590  11.79-15.49
+
+
+Sheet: 中国电动车每月销售表.xlsx
+     年份  月份  排名      厂商        车型     销量         售价（万元）
+0  2023   1   1     比亚迪  宋PLUS新能源  35585  15.48 - 21.99
+1  2023   1   2     比亚迪        海豚  17582  11.68 - 13.98
+2  2023   1   3  上汽通用五菱  宏光MINIEV  16416    3.28 - 9.99
+3  2023   1   4     比亚迪     元PLUS  14342  13.58 - 16.78
+4  2023   1   5   特斯拉中国   Model Y  14184  25.99 - 35.99
+
+
+</pre></section>
+<details class="code"><summary>Python 代码</summary><pre><code class="language-python"># TODO：读取新能源汽车、整体汽车和总体销量数据
+_ = duckdb.connect(db)
+
+_.execute(f&quot;&quot;&quot;
+CREATE OR REPLACE TABLE Total_Sales AS
+    SELECT
+        时间 AS time,
+        销量 AS total_sales,
+        同比 AS yoy_growth      
+FROM read_xlsx({sheet0})
+&quot;&quot;&quot;)
+
+_.execute(f&quot;&quot;&quot;
+CREATE OR REPLACE TABLE V_Sales AS
+    SELECT
+        年份 AS year,
+        月份 AS month,
+        车型 AS model,
+        厂商 AS manufacturer,
+        销量 AS sales,
+        售价（万元） AS price
+FROM read_xlsx({sheet1})
+&quot;&quot;&quot;)
+
+_.execute(f&quot;&quot;&quot;
+CREATE OR REPLACE TABLE EV_Sales AS
+    SELECT
+        年份 AS year,
+        月份 AS month,
+        车型 AS model,
+        厂商 AS manufacturer,
+        销量 AS sales,
+        售价（万元） AS price
+FROM read_xlsx({sheet2})
+&quot;&quot;&quot;)
+
+_.close()</code></pre></details>
+<details class="code"><summary>Python 代码</summary><pre><code class="language-python"># 构建dataframe
+ts_df = pd.read_sql(&quot;SELECT * FROM Total_Sales&quot;, duckdb.connect(db))
+v_df = pd.read_sql(&quot;SELECT * FROM V_Sales&quot;, duckdb.connect(db))
+ev_df = pd.read_sql(&quot;SELECT * FROM EV_Sales&quot;, duckdb.connect(db))
+
+dfs = [ts_df, v_df, ev_df]</code></pre></details>
+<section class="cell-output stream"><pre>C:\Users\13485\AppData\Local\Temp\ipykernel_29488\819704523.py:2: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  ts_df = pd.read_sql(&quot;SELECT * FROM Total_Sales&quot;, duckdb.connect(db))
+C:\Users\13485\AppData\Local\Temp\ipykernel_29488\819704523.py:3: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  v_df = pd.read_sql(&quot;SELECT * FROM V_Sales&quot;, duckdb.connect(db))
+C:\Users\13485\AppData\Local\Temp\ipykernel_29488\819704523.py:4: UserWarning: pandas only supports SQLAlchemy connectable (engine/connection) or database string URI or sqlite3 DBAPI2 connection. Other DBAPI2 objects are not tested. Please consider using SQLAlchemy.
+  ev_df = pd.read_sql(&quot;SELECT * FROM EV_Sales&quot;, duckdb.connect(db))
+</pre></section>
+<details class="code"><summary>Python 代码</summary><pre><code class="language-python"># TODO：查看时间范围、统计粒度、销量单位和样例记录
+for df in dfs:
+    print(f&quot;字段: {df.columns.tolist()}&quot;)
+    print(f&quot;时间范围: {df[&#x27;time&#x27;].min()} to {df[&#x27;time&#x27;].max()}&quot; if &#x27;time&#x27; in df.columns else f&quot;Year Range: {df[&#x27;year&#x27;].min()} to {df[&#x27;year&#x27;].max()}&quot;)
+    print(f&quot;样例记录:\n{df.head()}\n&quot;)</code></pre></details>
+<section class="cell-output stream"><pre>字段: [&#x27;time&#x27;, &#x27;total_sales&#x27;, &#x27;yoy_growth&#x27;]
+时间范围: 2007-01-01 to 2023-09-01
+样例记录:
+         time  total_sales  yoy_growth
+0  2023-09-01    2019445.0     -0.1125
+1  2023-08-01    1922495.0     -0.1339
+2  2023-07-01    1781580.0     -0.1620
+3  2023-06-01    1894250.0     -0.1254
+4  2023-05-01    1685966.0      0.0691
+
+字段: [&#x27;year&#x27;, &#x27;month&#x27;, &#x27;model&#x27;, &#x27;manufacturer&#x27;, &#x27;sales&#x27;, &#x27;price&#x27;]
+Year Range: 2015.0 to 2023.0
+样例记录:
+     year  month        model manufacturer    sales        price
+0  2022.0    1.0           轩逸         东风日产  61170.0   9.98-17.49
+1  2022.0    1.0           朗逸         上汽大众  45524.0   9.40-15.19
+2  2022.0    1.0     宏光MINIEV       上汽通用五菱  37048.0    3.28-9.99
+3  2022.0    1.0         哈弗H6         长城汽车  35570.0   9.89-15.70
+4  2022.0    1.0  长安CS75 PLUS         长安汽车  33590.0  11.79-15.49
+
+字段: [&#x27;year&#x27;, &#x27;month&#x27;, &#x27;model&#x27;, &#x27;manufacturer&#x27;, &#x27;sales&#x27;, &#x27;price&#x27;]
+Year Range: 2015.0 to 2023.0
+样例记录:
+     year  month     model manufacturer    sales          price
+0  2023.0    1.0  宋PLUS新能源          比亚迪  35585.0  15.48 - 21.99
+1  2023.0    1.0        海豚          比亚迪  17582.0  11.68 - 13.98
+2  2023.0    1.0  宏光MINIEV       上汽通用五菱  16416.0    3.28 - 9.99
+3  2023.0    1.0     元PLUS          比亚迪  14342.0  13.58 - 16.78
+4  2023.0    1.0   Model Y        特斯拉中国  14184.0  25.99 - 35.99
+
+</pre></section>
+<section class="markdown"><p>记录数据文件来源、版本和最新更新时间<br> 数据文档 【中国电动汽车销售数据】2015~2023年各厂商各车型 <br> 一、数据介绍 <br> 数据范围：年份，月份 <br> 数据年份：2015~2023/11月 <br> 样本数量：三张表 <br> 三、数据概览 <br> excel格式</p></section>
+<section class="markdown"><hr>
+<h1>数据质量检查</h1>
+<p>在正式分析前，检查缺失值、重复记录、年月是否连续、销量是否存在明显异常，以及厂商、品牌和车型字段能否正确对应。这个步骤能帮助避免后续指标因数据问题产生误读。</p></section>
+<details class="code"><summary>Python 代码</summary><pre><code class="language-python"># TODO：检查字段类型、缺失值和重复记录
+_ = duckdb.connect(db)
+
+for df in dfs:
+    print(f&quot;检查表: {df.columns.tolist()}&quot;)
+    print(&quot;字段类型:&quot;)
+    print(df.dtypes)
+    print(&quot;\n缺失值统计:&quot;)
+    print(df.isnull().sum())
+    print(&quot;\n重复记录统计:&quot;)
+    print(df.duplicated().sum())
+    print(&quot;\n&quot;)
+
+_.close()</code></pre></details>
+<section class="cell-output stream"><pre>检查表: [&#x27;time&#x27;, &#x27;total_sales&#x27;, &#x27;yoy_growth&#x27;]
+字段类型:
+time            object
+total_sales    float64
+yoy_growth     float64
+dtype: object
+
+缺失值统计:
+time            0
+total_sales     0
+yoy_growth     12
+dtype: int64
+
+重复记录统计:
+0
+
+
+检查表: [&#x27;year&#x27;, &#x27;month&#x27;, &#x27;model&#x27;, &#x27;manufacturer&#x27;, &#x27;sales&#x27;, &#x27;price&#x27;]
+字段类型:
+year            float64
+month           float64
+model               str
+manufacturer        str
+sales           float64
+price               str
+dtype: object
+
+缺失值统计:
+year            0
+month           0
+model           0
+manufacturer    0
+sales           0
+price           0
+dtype: int64
+
+重复记录统计:
+42
+
+
+检查表: [&#x27;year&#x27;, &#x27;month&#x27;, &#x27;model&#x27;, &#x27;manufacturer&#x27;, &#x27;sales&#x27;, &#x27;price&#x27;]
+字段类型:
+year            float64
+month           float64
+model               str
+manufacturer        str
+sales           float64
+price               str
+dtype: object
+
+缺失值统计:
+year            0
+month           0
+model           0
+manufacturer    0
+sales           0
+price           0
+dtype: int64
+
+重复记录统计:
+167
+
+
+</pre></section>
+<details class="code"><summary>Python 代码</summary><pre><code class="language-python"># TODO：检查年月连续性、缺失月份和数据截止月份
+for df in dfs:
+    if &#x27;year&#x27; in df.columns and &#x27;month&#x27; in df.columns:
+        df[&#x27;date&#x27;] = pd.to_datetime(df[[&#x27;year&#x27;, &#x27;month&#x27;]].assign(day=1))
+        date_range = pd.date_range(start=df[&#x27;date&#x27;].min(), end=df[&#x27;date&#x27;].max(), freq=&#x27;MS&#x27;)
+        missing_dates = date_range.difference(df[&#x27;date&#x27;])
+        print(f&quot;检查表: {df.columns.tolist()}&quot;)
+        print(f&quot;数据截止月份: {df[&#x27;date&#x27;].max()}&quot;)
+        print(f&quot;缺失月份: {missing_dates}\n&quot;)</code></pre></details>
+<section class="cell-output stream"><pre>检查表: [&#x27;year&#x27;, &#x27;month&#x27;, &#x27;model&#x27;, &#x27;manufacturer&#x27;, &#x27;sales&#x27;, &#x27;price&#x27;, &#x27;date&#x27;]
+数据截止月份: 2023-09-01 00:00:00
+缺失月份: DatetimeIndex([], dtype=&#x27;datetime64[us]&#x27;, freq=&#x27;MS&#x27;)
+
+检查表: [&#x27;year&#x27;, &#x27;month&#x27;, &#x27;model&#x27;, &#x27;manufacturer&#x27;, &#x27;sales&#x27;, &#x27;price&#x27;, &#x27;date&#x27;]
+数据截止月份: 2023-10-01 00:00:00
+缺失月份: DatetimeIndex([], dtype=&#x27;datetime64[us]&#x27;, freq=&#x27;MS&#x27;)
+
+</pre></section>
+<details class="code"><summary>Python 代码</summary><pre><code class="language-python"># TODO：检查负销量
+for df in dfs:
+    if &#x27;sales&#x27; in df.columns:
+        negative_sales = df[df[&#x27;sales&#x27;] &lt; 0]
+        print(f&quot;检查表: {df.columns.tolist()}&quot;)
+        print(f&quot;负销量记录:\n{negative_sales}\n&quot;)</code></pre></details>
+<section class="cell-output stream"><pre>检查表: [&#x27;year&#x27;, &#x27;month&#x27;, &#x27;model&#x27;, &#x27;manufacturer&#x27;, &#x27;sales&#x27;, &#x27;price&#x27;, &#x27;date&#x27;]
+负销量记录:
+Empty DataFrame
+Columns: [year, month, model, manufacturer, sales, price, date]
+Index: []
+
+检查表: [&#x27;year&#x27;, &#x27;month&#x27;, &#x27;model&#x27;, &#x27;manufacturer&#x27;, &#x27;sales&#x27;, &#x27;price&#x27;, &#x27;date&#x27;]
+负销量记录:
+Empty DataFrame
+Columns: [year, month, model, manufacturer, sales, price, date]
+Index: []
+
+</pre></section>
+<section class="markdown"><h3>数据质量记录</h3>
+<p>&lt;!-- 建议记录：发现了什么问题、如何处理、处理后是否仍有影响。例如：某月份缺少记录，因此不参与环比计算。 --&gt;</p></section>
+<section class="markdown"><hr>
+<h1>数据清洗</h1>
+<p>根据前面的检查结果处理缺失值、重复值和明显异常记录，并保留必要的清洗说明。清洗的目标是让数据可以用于后续的月度比较，而不是为了让数据看起来更“漂亮”。</p></section>
+<details class="code"><summary>Python 代码</summary><pre><code class="language-python"># TODO：清洗数据
+for i,df in enumerate(dfs):
+    df = df.drop_duplicates()  # 删除重复记录
+    df = df.dropna()  # 删除缺失值记录
+    df = df[df[&#x27;sales&#x27;] &gt;= 0] if &#x27;sales&#x27; in df.columns else df  # 删除负销量记录
+    df = df.reset_index(drop=True)  # 重置索引
+    dfs[i] = df</code></pre></details>
+<details class="code"><summary>Python 代码</summary><pre><code class="language-python"># TODO: 检查数据清洗质量
+for df in dfs:
+    print(f&quot;检查表: {df.columns.tolist()}&quot;)
+    print(&quot;字段类型:&quot;)
+    print(df.dtypes)
+    print(&quot;\n缺失值统计:&quot;)
+    print(df.isnull().sum())
+    print(&quot;\n重复记录统计:&quot;)
+    print(df.duplicated().sum())
+    print(&quot;\n负销量记录统计:&quot;)
+    if &#x27;sales&#x27; in df.columns:
+        negative_sales = df[df[&#x27;sales&#x27;] &lt; 0]
+        print(f&quot;负销量记录:\n{negative_sales}\n&quot;)</code></pre></details>
+<section class="cell-output stream"><pre>检查表: [&#x27;time&#x27;, &#x27;total_sales&#x27;, &#x27;yoy_growth&#x27;]
+字段类型:
+time            object
+total_sales    float64
+yoy_growth     float64
+dtype: object
+
+缺失值统计:
+time           0
+total_sales    0
+yoy_growth     0
+dtype: int64
+
+重复记录统计:
+0
+
+负销量记录统计:
+检查表: [&#x27;year&#x27;, &#x27;month&#x27;, &#x27;model&#x27;, &#x27;manufacturer&#x27;, &#x27;sales&#x27;, &#x27;price&#x27;, &#x27;date&#x27;]
+字段类型:
+year                   float64
+month                  float64
+model                      str
+manufacturer               str
+sales                  float64
+price                      str
+date            datetime64[us]
+dtype: object
+
+缺失值统计:
+year            0
+month           0
+model           0
+manufacturer    0
+sales           0
+price           0
+date            0
+dtype: int64
+
+重复记录统计:
+0
+
+负销量记录统计:
+负销量记录:
+Empty DataFrame
+Columns: [year, month, model, manufacturer, sales, price, date]
+Index: []
+
+检查表: [&#x27;year&#x27;, &#x27;month&#x27;, &#x27;model&#x27;, &#x27;manufacturer&#x27;, &#x27;sales&#x27;, &#x27;price&#x27;, &#x27;date&#x27;]
+字段类型:
+year                   float64
+month                  float64
+model                      str
+manufacturer               str
+sales                  float64
+price                      str
+date            datetime64[us]
+dtype: object
+
+缺失值统计:
+year            0
+month           0
+model           0
+manufacturer    0
+sales           0
+price           0
+date            0
+dtype: int64
+
+重复记录统计:
+0
+
+负销量记录统计:
+负销量记录:
+Empty DataFrame
+Columns: [year, month, model, manufacturer, sales, price, date]
+Index: []
+
+</pre></section>
+<section class="markdown"><hr>
+<h1>宏观数据分析</h1>
+<p>这一部分从市场整体出发，比较汽车总销量与新能源汽车销量，并初步了解新能源汽车在汽车市场中的占比、品牌份额和品牌排名变化。</p></section>
+<details class="code"><summary>Python 代码</summary><pre><code class="language-python"># 按月份的整体汽车销量和新能源汽车销量趋势图
+fig = go.Figure()
+v_sales = v_df.groupby([&#x27;year&#x27;, &#x27;month&#x27;])[&#x27;sales&#x27;].sum().reset_index()
+ev_sales = ev_df.groupby([&#x27;year&#x27;, &#x27;month&#x27;])[&#x27;sales&#x27;].sum().reset_index()
+
+fig.add_trace(go.Scatter(x=pd.to_datetime(v_sales[[&#x27;year&#x27;, &#x27;month&#x27;]].assign(day=1)), y=v_sales[&#x27;sales&#x27;], mode=&#x27;lines&#x27;, name=&#x27;整体汽车销量&#x27;))
+fig.add_trace(go.Scatter(x=pd.to_datetime(ev_sales[[&#x27;year&#x27;, &#x27;month&#x27;]].assign(day=1)), y=ev_sales[&#x27;sales&#x27;], mode=&#x27;lines&#x27;, name=&#x27;新能源汽车销量&#x27;))
+
+#绘制线性回归直线
+fig.add_trace(go.Scatter(x=pd.to_datetime(v_sales[[&#x27;year&#x27;, &#x27;month&#x27;]].assign(day=1)), y=np.poly1d(np.polyfit(pd.to_datetime(v_sales[[&#x27;year&#x27;, &#x27;month&#x27;]].assign(day=1)).astype(int), v_sales[&#x27;sales&#x27;], 1))(pd.to_datetime(v_sales[[&#x27;year&#x27;, &#x27;month&#x27;]].assign(day=1)).astype(int)), mode=&#x27;lines&#x27;, name=&#x27;整体汽车销量趋势线&#x27;))
+fig.add_trace(go.Scatter(x=pd.to_datetime(ev_sales[[&#x27;year&#x27;, &#x27;month&#x27;]].assign(day=1)), y=np.poly1d(np.polyfit(pd.to_datetime(ev_sales[[&#x27;year&#x27;, &#x27;month&#x27;]].assign(day=1)).astype(int), ev_sales[&#x27;sales&#x27;], 1))(pd.to_datetime(ev_sales[[&#x27;year&#x27;, &#x27;month&#x27;]].assign(day=1)).astype(int)), mode=&#x27;lines&#x27;, name=&#x27;新能源汽车销量趋势线&#x27;))
+
+fig.show()</code></pre></details>
+<section class="cell-output"><div id="nev-plot-1" class="plotly-graph-div" aria-label="交互式图表 1"></div><script>window.addEventListener("DOMContentLoaded",function(){var p={"data": [{"mode": "lines", "name": "整体汽车销量", "type": "scatter", "x": ["2015-01-01T00:00:00.000000", "2015-02-01T00:00:00.000000", "2015-03-01T00:00:00.000000", "2015-04-01T00:00:00.000000", "2015-05-01T00:00:00.000000", "2015-06-01T00:00:00.000000", "2015-07-01T00:00:00.000000", "2015-08-01T00:00:00.000000", "2015-09-01T00:00:00.000000", "2015-10-01T00:00:00.000000", "2015-11-01T00:00:00.000000", "2015-12-01T00:00:00.000000", "2016-01-01T00:00:00.000000", "2016-02-01T00:00:00.000000", "2016-03-01T00:00:00.000000", "2016-04-01T00:00:00.000000", "2016-05-01T00:00:00.000000", "2016-06-01T00:00:00.000000", "2016-07-01T00:00:00.000000", "2016-08-01T00:00:00.000000", "2016-09-01T00:00:00.000000", "2016-10-01T00:00:00.000000", "2016-11-01T00:00:00.000000", "2016-12-01T00:00:00.000000", "2017-01-01T00:00:00.000000", "2017-02-01T00:00:00.000000", "2017-03-01T00:00:00.000000", "2017-04-01T00:00:00.000000", "2017-05-01T00:00:00.000000", "2017-06-01T00:00:00.000000", "2017-07-01T00:00:00.000000", "2017-08-01T00:00:00.000000", "2017-09-01T00:00:00.000000", "2017-10-01T00:00:00.000000", "2017-11-01T00:00:00.000000", "2017-12-01T00:00:00.000000", "2018-01-01T00:00:00.000000", "2018-02-01T00:00:00.000000", "2018-03-01T00:00:00.000000", "2018-04-01T00:00:00.000000", "2018-05-01T00:00:00.000000", "2018-06-01T00:00:00.000000", "2018-07-01T00:00:00.000000", "2018-08-01T00:00:00.000000", "2018-09-01T00:00:00.000000", "2018-10-01T00:00:00.000000", "2018-11-01T00:00:00.000000", "2018-12-01T00:00:00.000000", "2019-01-01T00:00:00.000000", "2019-02-01T00:00:00.000000", "2019-03-01T00:00:00.000000", "2019-04-01T00:00:00.000000", "2019-05-01T00:00:00.000000", "2019-06-01T00:00:00.000000", "2019-07-01T00:00:00.000000", "2019-08-01T00:00:00.000000", "2019-09-01T00:00:00.000000", "2019-10-01T00:00:00.000000", "2019-11-01T00:00:00.000000", "2019-12-01T00:00:00.000000", "2020-01-01T00:00:00.000000", "2020-02-01T00:00:00.000000", "2020-03-01T00:00:00.000000", "2020-04-01T00:00:00.000000", "2020-05-01T00:00:00.000000", "2020-06-01T00:00:00.000000", "2020-07-01T00:00:00.000000", "2020-08-01T00:00:00.000000", "2020-09-01T00:00:00.000000", "2020-10-01T00:00:00.000000", "2020-11-01T00:00:00.000000", "2020-12-01T00:00:00.000000", "2021-01-01T00:00:00.000000", "2021-02-01T00:00:00.000000", "2021-03-01T00:00:00.000000", "2021-04-01T00:00:00.000000", "2021-05-01T00:00:00.000000", "2021-06-01T00:00:00.000000", "2021-07-01T00:00:00.000000", "2021-08-01T00:00:00.000000", "2021-09-01T00:00:00.000000", "2021-10-01T00:00:00.000000", "2021-11-01T00:00:00.000000", "2021-12-01T00:00:00.000000", "2022-01-01T00:00:00.000000", "2022-02-01T00:00:00.000000", "2022-03-01T00:00:00.000000", "2022-04-01T00:00:00.000000", "2022-05-01T00:00:00.000000", "2022-06-01T00:00:00.000000", "2022-07-01T00:00:00.000000", "2022-08-01T00:00:00.000000", "2022-09-01T00:00:00.000000", "2022-10-01T00:00:00.000000", "2022-11-01T00:00:00.000000", "2022-12-01T00:00:00.000000", "2023-01-01T00:00:00.000000", "2023-02-01T00:00:00.000000", "2023-03-01T00:00:00.000000", "2023-04-01T00:00:00.000000", "2023-05-01T00:00:00.000000", "2023-06-01T00:00:00.000000", "2023-07-01T00:00:00.000000", "2023-08-01T00:00:00.000000", "2023-09-01T00:00:00.000000"], "y": {"bdata": "AAAAADjLQkEAAAAAGM87QQAAAICTgEJBAAAAAJKMP0EAAACAkE5AQQAAAADVTT1BAAAAAE9OOEEAAAAAjNM9QQAAAIC+n0BBAAAAAHy7QUEAAAAA8m1EQQAAAADA/0VBAAAAAK/yQkEAAAAAwxw7QQAAAIBF10JBAAAAgAFiQUEAAACAuFtAQQAAAADS7j9BAAAAAA/9PUEAAACAXApBQQAAAIDO+kJBAAAAAGe3Q0EAAACA4h9DQQAAAIAiykNBAAAAgNGDQEEAAAAAobw3QQAAAAC1zT5BAAAAAO7aOUEAAAAAslI6QQAAAABIlDtBAAAAAItzOUEAAAAAMlA8QQAAAABA60FBAAAAAIVmQkEAAACAOndDQQAAAAC/BURBAAAAgMeWQkEAAAAA72w2QQAAAACsW0BBAAAAANOzPEEAAAAAccw8QQAAAAAi9ztBAAAAAFKCOEEAAAAAJds6QQAAAAD10z5BAAAAAJWDP0EAAACApbZAQQAAAAD1O0FBAAAAACanP0EAAAAA298yQQAAAABttD5BAAAAAJMjOEEAAAAA3lo4QQAAAAB0VjpBAAAAADCUN0EAAAAAc4s5QQAAAABjjj1BAAAAAPWNPUEAAAAAajo/QQAAAIAu4EBBAAAAADZcOEEAAAAA2HUKQQAAAAAwJy9BAAAAAJv+NkEAAAAAGHo5QQAAAAAqljpBAAAAAK08OUEAAAAAp6I6QQAAAAD24T5BAAAAAEwsP0EAAAAAifVAQQAAAICkm0FBAAAAAAoJPkEAAAAA3gUxQQAAAAAzrjtBAAAAAE5uOUEAAAAAmJw4QQAAAACg6jZBAAAAAB6TNkEAAAAAPEk3QQAAAAD2BDpBAAAAADnsPUEAAAAA0oNAQQAAAIDDIUJBAAAAAMlTQEEAAAAAdSU2QQAAAAClxDtBAAAAABhiG0EAAAAAYBA4QQAAAABjhkBBAAAAACQ4QEEAAACAJ/NAQQAAAABTXEFBAAAAAOuSQEEAAAAAaqE+QQAAAIAIt0BBAAAAAPnCM0EAAAAAFU81QQAAAABuUDhBAAAAAJv2OEEAAAAAzrk5QQAAAADZwDxBAAAAAEwvO0EAAAAAv1U9QQAAAAB10D5B", "dtype": "f8"}}, {"mode": "lines", "name": "新能源汽车销量", "type": "scatter", "x": ["2015-01-01T00:00:00.000000", "2015-02-01T00:00:00.000000", "2015-03-01T00:00:00.000000", "2015-04-01T00:00:00.000000", "2015-05-01T00:00:00.000000", "2015-06-01T00:00:00.000000", "2015-07-01T00:00:00.000000", "2015-08-01T00:00:00.000000", "2015-09-01T00:00:00.000000", "2015-10-01T00:00:00.000000", "2015-11-01T00:00:00.000000", "2015-12-01T00:00:00.000000", "2016-01-01T00:00:00.000000", "2016-02-01T00:00:00.000000", "2016-03-01T00:00:00.000000", "2016-04-01T00:00:00.000000", "2016-05-01T00:00:00.000000", "2016-06-01T00:00:00.000000", "2016-07-01T00:00:00.000000", "2016-08-01T00:00:00.000000", "2016-09-01T00:00:00.000000", "2016-10-01T00:00:00.000000", "2016-11-01T00:00:00.000000", "2016-12-01T00:00:00.000000", "2017-01-01T00:00:00.000000", "2017-02-01T00:00:00.000000", "2017-03-01T00:00:00.000000", "2017-04-01T00:00:00.000000", "2017-05-01T00:00:00.000000", "2017-06-01T00:00:00.000000", "2017-07-01T00:00:00.000000", "2017-08-01T00:00:00.000000", "2017-09-01T00:00:00.000000", "2017-10-01T00:00:00.000000", "2017-11-01T00:00:00.000000", "2017-12-01T00:00:00.000000", "2018-01-01T00:00:00.000000", "2018-02-01T00:00:00.000000", "2018-03-01T00:00:00.000000", "2018-04-01T00:00:00.000000", "2018-05-01T00:00:00.000000", "2018-06-01T00:00:00.000000", "2018-07-01T00:00:00.000000", "2018-08-01T00:00:00.000000", "2018-09-01T00:00:00.000000", "2018-10-01T00:00:00.000000", "2018-11-01T00:00:00.000000", "2018-12-01T00:00:00.000000", "2019-01-01T00:00:00.000000", "2019-02-01T00:00:00.000000", "2019-03-01T00:00:00.000000", "2019-04-01T00:00:00.000000", "2019-05-01T00:00:00.000000", "2019-06-01T00:00:00.000000", "2019-07-01T00:00:00.000000", "2019-08-01T00:00:00.000000", "2019-09-01T00:00:00.000000", "2019-10-01T00:00:00.000000", "2019-11-01T00:00:00.000000", "2019-12-01T00:00:00.000000", "2020-01-01T00:00:00.000000", "2020-02-01T00:00:00.000000", "2020-03-01T00:00:00.000000", "2020-04-01T00:00:00.000000", "2020-05-01T00:00:00.000000", "2020-06-01T00:00:00.000000", "2020-07-01T00:00:00.000000", "2020-08-01T00:00:00.000000", "2020-09-01T00:00:00.000000", "2020-10-01T00:00:00.000000", "2020-11-01T00:00:00.000000", "2020-12-01T00:00:00.000000", "2021-01-01T00:00:00.000000", "2021-02-01T00:00:00.000000", "2021-03-01T00:00:00.000000", "2021-04-01T00:00:00.000000", "2021-05-01T00:00:00.000000", "2021-06-01T00:00:00.000000", "2021-07-01T00:00:00.000000", "2021-08-01T00:00:00.000000", "2021-09-01T00:00:00.000000", "2021-10-01T00:00:00.000000", "2021-11-01T00:00:00.000000", "2021-12-01T00:00:00.000000", "2022-01-01T00:00:00.000000", "2022-02-01T00:00:00.000000", "2022-03-01T00:00:00.000000", "2022-04-01T00:00:00.000000", "2022-05-01T00:00:00.000000", "2022-06-01T00:00:00.000000", "2022-07-01T00:00:00.000000", "2022-08-01T00:00:00.000000", "2022-09-01T00:00:00.000000", "2022-10-01T00:00:00.000000", "2022-11-01T00:00:00.000000", "2022-12-01T00:00:00.000000", "2023-01-01T00:00:00.000000", "2023-02-01T00:00:00.000000", "2023-03-01T00:00:00.000000", "2023-04-01T00:00:00.000000", "2023-05-01T00:00:00.000000", "2023-06-01T00:00:00.000000", "2023-07-01T00:00:00.000000", "2023-08-01T00:00:00.000000", "2023-09-01T00:00:00.000000", "2023-10-01T00:00:00.000000"], "y": {"bdata": "AAAAAAD2uUAAAAAAADqzQAAAAAAAbbtAAAAAAAAVukAAAAAAAFC7QAAAAACAvcBAAAAAAABhvkAAAAAAgCnAQAAAAACABsZAAAAAAAB7xEAAAAAAgHDPQAAAAACAnNlAAAAAAIDmy0AAAAAAACCuQAAAAAAA3LxAAAAAAABhxkAAAAAAgAbCQAAAAACAxcZAAAAAAABZxUAAAAAAAAvLQAAAAAAArcVAAAAAAIBly0AAAAAAwLfUQAAAAABAWtZAAAAAAADIpUAAAAAAgHDAQAAAAAAAHcZAAAAAAMDM1EAAAAAAQHTcQAAAAACAtttAAAAAAAAg3EAAAAAAoNHjQAAAAADA/eVAAAAAAGDU50AAAAAA4OHtQAAAAACAm+5AAAAAAADo10AAAAAAQObWQAAAAAAg3+RAAAAAAMD06EAAAAAAgNHtQAAAAAAAq+JAAAAAAADi6EAAAAAAYCnsQAAAAADgf/FAAAAAADAh90AAAAAAwDj8QAAAAAAoPAFBAAAAADDY9kAAAAAAAN3kQAAAAABwqvpAAAAAAGB89UAAAAAAUMzzQAAAAABg4flAAAAAAICM6EAAAAAAoBXtQAAAAADgVexAAAAAAIAA6EAAAAAAIGPvQAAAAACgAvhAAAAAAADd4UAAAAAAAEzCQAAAAABAn+NAAAAAAAA15UAAAAAA8K/xQAAAAAAw3PRAAAAAAFCo9UAAAAAAoL34QAAAAACg3vpAAAAAAPAG/0AAAAAAiKACQQAAAABYZgZBAAAAAOitAkEAAAAAENz3QAAAAACwIgdBAAAAANDUA0EAAAAAUPUEQQAAAACQTglBAAAAAGDSB0EAAAAAILIOQQAAAAC8hxFBAAAAAKwQEkEAAAAA4GoVQQAAAABwvhpBAAAAAJwIGEEAAAAApK8SQQAAAAAkkxpBAAAAAPClEEEAAAAANN8XQQAAAACyOCBBAAAAADgxIEEAAAAAqm0iQQAAAAAePCNBAAAAADDrIkEAAAAA4HIkQQAAAADYFyVBAAAAACQjE0EAAAAAfLMYQQAAAABQ1x1BAAAAAECNHUEAAAAA2DcfQQAAAACSFyJBAAAAAADGIEEAAAAALqoiQQAAAAA8BiNBAAAAAEJLI0E=", "dtype": "f8"}}, {"mode": "lines", "name": "整体汽车销量趋势线", "type": "scatter", "x": ["2015-01-01T00:00:00.000000", "2015-02-01T00:00:00.000000", "2015-03-01T00:00:00.000000", "2015-04-01T00:00:00.000000", "2015-05-01T00:00:00.000000", "2015-06-01T00:00:00.000000", "2015-07-01T00:00:00.000000", "2015-08-01T00:00:00.000000", "2015-09-01T00:00:00.000000", "2015-10-01T00:00:00.000000", "2015-11-01T00:00:00.000000", "2015-12-01T00:00:00.000000", "2016-01-01T00:00:00.000000", "2016-02-01T00:00:00.000000", "2016-03-01T00:00:00.000000", "2016-04-01T00:00:00.000000", "2016-05-01T00:00:00.000000", "2016-06-01T00:00:00.000000", "2016-07-01T00:00:00.000000", "2016-08-01T00:00:00.000000", "2016-09-01T00:00:00.000000", "2016-10-01T00:00:00.000000", "2016-11-01T00:00:00.000000", "2016-12-01T00:00:00.000000", "2017-01-01T00:00:00.000000", "2017-02-01T00:00:00.000000", "2017-03-01T00:00:00.000000", "2017-04-01T00:00:00.000000", "2017-05-01T00:00:00.000000", "2017-06-01T00:00:00.000000", "2017-07-01T00:00:00.000000", "2017-08-01T00:00:00.000000", "2017-09-01T00:00:00.000000", "2017-10-01T00:00:00.000000", "2017-11-01T00:00:00.000000", "2017-12-01T00:00:00.000000", "2018-01-01T00:00:00.000000", "2018-02-01T00:00:00.000000", "2018-03-01T00:00:00.000000", "2018-04-01T00:00:00.000000", "2018-05-01T00:00:00.000000", "2018-06-01T00:00:00.000000", "2018-07-01T00:00:00.000000", "2018-08-01T00:00:00.000000", "2018-09-01T00:00:00.000000", "2018-10-01T00:00:00.000000", "2018-11-01T00:00:00.000000", "2018-12-01T00:00:00.000000", "2019-01-01T00:00:00.000000", "2019-02-01T00:00:00.000000", "2019-03-01T00:00:00.000000", "2019-04-01T00:00:00.000000", "2019-05-01T00:00:00.000000", "2019-06-01T00:00:00.000000", "2019-07-01T00:00:00.000000", "2019-08-01T00:00:00.000000", "2019-09-01T00:00:00.000000", "2019-10-01T00:00:00.000000", "2019-11-01T00:00:00.000000", "2019-12-01T00:00:00.000000", "2020-01-01T00:00:00.000000", "2020-02-01T00:00:00.000000", "2020-03-01T00:00:00.000000", "2020-04-01T00:00:00.000000", "2020-05-01T00:00:00.000000", "2020-06-01T00:00:00.000000", "2020-07-01T00:00:00.000000", "2020-08-01T00:00:00.000000", "2020-09-01T00:00:00.000000", "2020-10-01T00:00:00.000000", "2020-11-01T00:00:00.000000", "2020-12-01T00:00:00.000000", "2021-01-01T00:00:00.000000", "2021-02-01T00:00:00.000000", "2021-03-01T00:00:00.000000", "2021-04-01T00:00:00.000000", "2021-05-01T00:00:00.000000", "2021-06-01T00:00:00.000000", "2021-07-01T00:00:00.000000", "2021-08-01T00:00:00.000000", "2021-09-01T00:00:00.000000", "2021-10-01T00:00:00.000000", "2021-11-01T00:00:00.000000", "2021-12-01T00:00:00.000000", "2022-01-01T00:00:00.000000", "2022-02-01T00:00:00.000000", "2022-03-01T00:00:00.000000", "2022-04-01T00:00:00.000000", "2022-05-01T00:00:00.000000", "2022-06-01T00:00:00.000000", "2022-07-01T00:00:00.000000", "2022-08-01T00:00:00.000000", "2022-09-01T00:00:00.000000", "2022-10-01T00:00:00.000000", "2022-11-01T00:00:00.000000", "2022-12-01T00:00:00.000000", "2023-01-01T00:00:00.000000", "2023-02-01T00:00:00.000000", "2023-03-01T00:00:00.000000", "2023-04-01T00:00:00.000000", "2023-05-01T00:00:00.000000", "2023-06-01T00:00:00.000000", "2023-07-01T00:00:00.000000", "2023-08-01T00:00:00.000000", "2023-09-01T00:00:00.000000"], "y": {"bdata": "FU0YQpG/QEGqwZhdNbVAQfYqmRvaq0BBi58ZN36hQEFdEBred5dAQfGEmvkbjUBBw/WaoBWDQEFXahu8uXhAQezem9ddbkBBvk+cfldkQEFSxBya+1lAQSQ1HUH1T0BBuKmdXJlFQEFNHh54PTtAQVyLnqqMMUBB8f8exjAnQEHCcB9tKh1AQVfln4jOEkBBKVagL8gIQEF6lUGW2Pw/QaR+Qs0g6D9BRmBDGxTUP0FwSURSXL8/QRQrRaBPqz9BPBRG15eWP0Fm/UYO4IE/Qf7PR4opbz9BKLlIwXFaP0HKmkkPZUY/QfSDSkatMT9BmGVLlKAdP0HATkzL6Ag/Qeo3TQIx9D5BjBlOUCTgPkG2Ak+HbMs+QVrkT9Vftz5Bgs1QDKiiPkGstlFD8I0+QUSJUr85ez5BbnJT9oFmPkEQVFREdVI+QTo9VXu9PT5B3h5WybApPkEGCFcA+RQ+QTDxVzdBAD5B1NJYhTTsPUH8u1m8fNc9QaCdWgpwwz1ByIZbQbiuPUHyb1x4AJo9QYpCXfRJhz1BtCteK5JyPUFWDV95hV49QYD2X7DNST1BJNhg/sA1PUFMwWE1CSE9QXaqYmxRDD1BGoxjukT4PEFCdWTxjOM8QeZWZT+AzzxBDkBmdsi6PEE4KWetEKY8QVYDaBKvkjxBfuxoSfd9PEEizmmX6mk8QUy3as4yVTxB8JhrHCZBPEEYgmxTbiw8QUJrbYq2FzxB5Exu2KkDPEEONm8P8u47QbIXcF3l2jtB2gBxlC3GO0EE6nHLdbE7QZy8cke/njtBxqVzfgeKO0Foh3TM+nU7QZJwdQNDYTtBNlJ2UTZNO0FeO3eIfjg7QYgkeL/GIztBKgZ5DboPO0FU73lEAvs6QfjQepL15jpBILp7yT3SOkFKo3wAhr06QeJ1fXzPqjpBDF9+sxeWOkGuQH8BC4I6QdgpgDhTbTpBfAuBhkZZOkGk9IG9jkQ6Qc7dgvTWLzpBcL+DQsobOkGaqIR5Egc6QT6KhccF8zlBZnOG/k3eOUGQXIc1lsk5QSgviLHftjlBUhiJ6CeiOUH0+Yk2G445QR7jim1jeTlBwsSLu1ZlOUHqrYzynlA5QRSXjSnnOzlB", "dtype": "f8"}}, {"mode": "lines", "name": "新能源汽车销量趋势线", "type": "scatter", "x": ["2015-01-01T00:00:00.000000", "2015-02-01T00:00:00.000000", "2015-03-01T00:00:00.000000", "2015-04-01T00:00:00.000000", "2015-05-01T00:00:00.000000", "2015-06-01T00:00:00.000000", "2015-07-01T00:00:00.000000", "2015-08-01T00:00:00.000000", "2015-09-01T00:00:00.000000", "2015-10-01T00:00:00.000000", "2015-11-01T00:00:00.000000", "2015-12-01T00:00:00.000000", "2016-01-01T00:00:00.000000", "2016-02-01T00:00:00.000000", "2016-03-01T00:00:00.000000", "2016-04-01T00:00:00.000000", "2016-05-01T00:00:00.000000", "2016-06-01T00:00:00.000000", "2016-07-01T00:00:00.000000", "2016-08-01T00:00:00.000000", "2016-09-01T00:00:00.000000", "2016-10-01T00:00:00.000000", "2016-11-01T00:00:00.000000", "2016-12-01T00:00:00.000000", "2017-01-01T00:00:00.000000", "2017-02-01T00:00:00.000000", "2017-03-01T00:00:00.000000", "2017-04-01T00:00:00.000000", "2017-05-01T00:00:00.000000", "2017-06-01T00:00:00.000000", "2017-07-01T00:00:00.000000", "2017-08-01T00:00:00.000000", "2017-09-01T00:00:00.000000", "2017-10-01T00:00:00.000000", "2017-11-01T00:00:00.000000", "2017-12-01T00:00:00.000000", "2018-01-01T00:00:00.000000", "2018-02-01T00:00:00.000000", "2018-03-01T00:00:00.000000", "2018-04-01T00:00:00.000000", "2018-05-01T00:00:00.000000", "2018-06-01T00:00:00.000000", "2018-07-01T00:00:00.000000", "2018-08-01T00:00:00.000000", "2018-09-01T00:00:00.000000", "2018-10-01T00:00:00.000000", "2018-11-01T00:00:00.000000", "2018-12-01T00:00:00.000000", "2019-01-01T00:00:00.000000", "2019-02-01T00:00:00.000000", "2019-03-01T00:00:00.000000", "2019-04-01T00:00:00.000000", "2019-05-01T00:00:00.000000", "2019-06-01T00:00:00.000000", "2019-07-01T00:00:00.000000", "2019-08-01T00:00:00.000000", "2019-09-01T00:00:00.000000", "2019-10-01T00:00:00.000000", "2019-11-01T00:00:00.000000", "2019-12-01T00:00:00.000000", "2020-01-01T00:00:00.000000", "2020-02-01T00:00:00.000000", "2020-03-01T00:00:00.000000", "2020-04-01T00:00:00.000000", "2020-05-01T00:00:00.000000", "2020-06-01T00:00:00.000000", "2020-07-01T00:00:00.000000", "2020-08-01T00:00:00.000000", "2020-09-01T00:00:00.000000", "2020-10-01T00:00:00.000000", "2020-11-01T00:00:00.000000", "2020-12-01T00:00:00.000000", "2021-01-01T00:00:00.000000", "2021-02-01T00:00:00.000000", "2021-03-01T00:00:00.000000", "2021-04-01T00:00:00.000000", "2021-05-01T00:00:00.000000", "2021-06-01T00:00:00.000000", "2021-07-01T00:00:00.000000", "2021-08-01T00:00:00.000000", "2021-09-01T00:00:00.000000", "2021-10-01T00:00:00.000000", "2021-11-01T00:00:00.000000", "2021-12-01T00:00:00.000000", "2022-01-01T00:00:00.000000", "2022-02-01T00:00:00.000000", "2022-03-01T00:00:00.000000", "2022-04-01T00:00:00.000000", "2022-05-01T00:00:00.000000", "2022-06-01T00:00:00.000000", "2022-07-01T00:00:00.000000", "2022-08-01T00:00:00.000000", "2022-09-01T00:00:00.000000", "2022-10-01T00:00:00.000000", "2022-11-01T00:00:00.000000", "2022-12-01T00:00:00.000000", "2023-01-01T00:00:00.000000", "2023-02-01T00:00:00.000000", "2023-03-01T00:00:00.000000", "2023-04-01T00:00:00.000000", "2023-05-01T00:00:00.000000", "2023-06-01T00:00:00.000000", "2023-07-01T00:00:00.000000", "2023-08-01T00:00:00.000000", "2023-09-01T00:00:00.000000", "2023-10-01T00:00:00.000000"], "y": {"bdata": "oI/2/wtR/sBgA5XPdvL8wEDX+gbPtfvA4EqZ1jlX+sBgic/I8wP5wCD9bZhepffAgDukihhS9sBAr0Jag/P0wAAj4SnulPPAYGEXHKhB8sAg1bXrEuPwwAAn2LuZH+/AgA4VW29i7MAA9lH6RKXpwEAI7iNXFefAwO8qwyxY5MCAbJenoLHhwACoqI3s6N3AAKKBVtSb2MCAcPuUfyHTwAB/6qZVTsvAAHOcOCW0wMAAQEDW7v2mwADw9+LSaqNAAL6Ud7yev0AAwda+B8TKQAAR1AGjVNJAAEJaw/fO10CASIH6DxzdQMC8A14yS+FAwD+Xeb7x40CAWFra6K7mQABxHTsTbOlAAPSwVp8S7EDADHS3yc/uQODHg+kqu/BAIFTlGcAZ8kCA4EZKVXjzQKAM4RL9tPRA4JhCQ5IT9kBgWgxR2Gb3QMDmbYFtxfhAQKg3j7MY+kCANJm/SHf7QODA+u/d1fxAYILE/SMp/kCgDiYuuYf/QCDo951/bQBBQK4oNsocAUFwdFnOFMwBQYCKprJoagJBoFDXSrMZA0FgMbxRVsMDQZD37OmgcgRBUNjR8EMcBUFwngKJjssFQaBkMyHZegZBYEUYKHwkB0GAC0nAxtMHQVDsLcdpfQhBcLJeX7QsCUGQeI/3/tsJQQB0KG36fwpBIDpZBUUvC0HwGj4M6NgLQRDhbqQyiAxB4MFTq9UxDUEAiIRDIOENQSBOtdtqkA5B8C6a4g06D0EQ9cp6WOkPQfDq18B9SRBBAE7wDCOhEEEQsQhZyPgQQRg8L0vyRxFBKJ9Hl5efEUGQD7oaafQRQaBy0mYOTBJBCONE6t+gEkEYRl02hfgSQSipdYIqUBNBkBnoBfykE0GgfABSofwTQQDtctVyURRBGFCLIRipFEEos6NtvQAVQTA+yl/nTxVBQKHiq4ynFUGoEVUvXvwVQbh0bXsDVBZBGOXf/tSoFkEwSPhKegAXQUCrEJcfWBdBqBuDGvGsF0G4fptmlgQYQRjvDepnWRhBMFImNg2xGEFAtT6CsggZQUhAZXTcVxlBWKN9wIGvGUHAE/BDUwQaQdB2CJD4WxpBMOd6E8qwGkFISpNfbwgbQVitq6sUYBtBuB0eL+a0G0E=", "dtype": "f8"}}], "layout": {"template": {"data": {"bar": [{"error_x": {"color": "#2a3f5f"}, "error_y": {"color": "#2a3f5f"}, "marker": {"line": {"color": "white", "width": 0.5}, "pattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}}, "type": "bar"}], "barpolar": [{"marker": {"line": {"color": "white", "width": 0.5}, "pattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}}, "type": "barpolar"}], "carpet": [{"aaxis": {"endlinecolor": "#2a3f5f", "gridcolor": "#C8D4E3", "linecolor": "#C8D4E3", "minorgridcolor": "#C8D4E3", "startlinecolor": "#2a3f5f"}, "baxis": {"endlinecolor": "#2a3f5f", "gridcolor": "#C8D4E3", "linecolor": "#C8D4E3", "minorgridcolor": "#C8D4E3", "startlinecolor": "#2a3f5f"}, "type": "carpet"}], "choropleth": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "type": "choropleth"}], "contour": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1, "#f0f921"]], "type": "contour"}], "contourcarpet": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "type": "contourcarpet"}], "heatmap": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1, "#f0f921"]], "type": "heatmap"}], "histogram": [{"marker": {"pattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}}, "type": "histogram"}], "histogram2d": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1, "#f0f921"]], "type": "histogram2d"}], "histogram2dcontour": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1, "#f0f921"]], "type": "histogram2dcontour"}], "mesh3d": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "type": "mesh3d"}], "parcoords": [{"line": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "parcoords"}], "pie": [{"automargin": true, "type": "pie"}], "scatter": [{"fillpattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}, "type": "scatter"}], "scatter3d": [{"line": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scatter3d"}], "scattercarpet": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scattercarpet"}], "scattergeo": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scattergeo"}], "scattergl": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scattergl"}], "scattermap": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scattermap"}], "scatterpolar": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scatterpolar"}], "scatterpolargl": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scatterpolargl"}], "scatterternary": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scatterternary"}], "surface": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1, "#f0f921"]], "type": "surface"}], "table": [{"cells": {"fill": {"color": "#EBF0F8"}, "line": {"color": "white"}}, "header": {"fill": {"color": "#C8D4E3"}, "line": {"color": "white"}}, "type": "table"}]}, "layout": {"annotationdefaults": {"arrowcolor": "#2a3f5f", "arrowhead": 0, "arrowwidth": 1}, "autotypenumbers": "strict", "coloraxis": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "colorscale": {"diverging": [[0, "#8e0152"], [0.1, "#c51b7d"], [0.2, "#de77ae"], [0.3, "#f1b6da"], [0.4, "#fde0ef"], [0.5, "#f7f7f7"], [0.6, "#e6f5d0"], [0.7, "#b8e186"], [0.8, "#7fbc41"], [0.9, "#4d9221"], [1, "#276419"]], "sequential": [[0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1, "#f0f921"]], "sequentialminus": [[0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1, "#f0f921"]]}, "colorway": ["#636efa", "#EF553B", "#00cc96", "#ab63fa", "#FFA15A", "#19d3f3", "#FF6692", "#B6E880", "#FF97FF", "#FECB52"], "font": {"color": "#2a3f5f"}, "geo": {"bgcolor": "white", "lakecolor": "white", "landcolor": "white", "showlakes": true, "showland": true, "subunitcolor": "#C8D4E3"}, "hoverlabel": {"align": "left"}, "hovermode": "closest", "paper_bgcolor": "white", "plot_bgcolor": "white", "polar": {"angularaxis": {"gridcolor": "#EBF0F8", "linecolor": "#EBF0F8", "ticks": ""}, "bgcolor": "white", "radialaxis": {"gridcolor": "#EBF0F8", "linecolor": "#EBF0F8", "ticks": ""}}, "scene": {"xaxis": {"backgroundcolor": "white", "gridcolor": "#DFE8F3", "gridwidth": 2, "linecolor": "#EBF0F8", "showbackground": true, "ticks": "", "zerolinecolor": "#EBF0F8"}, "yaxis": {"backgroundcolor": "white", "gridcolor": "#DFE8F3", "gridwidth": 2, "linecolor": "#EBF0F8", "showbackground": true, "ticks": "", "zerolinecolor": "#EBF0F8"}, "zaxis": {"backgroundcolor": "white", "gridcolor": "#DFE8F3", "gridwidth": 2, "linecolor": "#EBF0F8", "showbackground": true, "ticks": "", "zerolinecolor": "#EBF0F8"}}, "shapedefaults": {"line": {"color": "#2a3f5f"}}, "ternary": {"aaxis": {"gridcolor": "#DFE8F3", "linecolor": "#A2B1C6", "ticks": ""}, "baxis": {"gridcolor": "#DFE8F3", "linecolor": "#A2B1C6", "ticks": ""}, "bgcolor": "white", "caxis": {"gridcolor": "#DFE8F3", "linecolor": "#A2B1C6", "ticks": ""}}, "title": {"x": 0.05}, "xaxis": {"automargin": true, "gridcolor": "#EBF0F8", "linecolor": "#EBF0F8", "ticks": "", "title": {"standoff": 15}, "zerolinecolor": "#EBF0F8", "zerolinewidth": 2}, "yaxis": {"automargin": true, "gridcolor": "#EBF0F8", "linecolor": "#EBF0F8", "ticks": "", "title": {"standoff": 15}, "zerolinecolor": "#EBF0F8", "zerolinewidth": 2}}}}}; Plotly.newPlot("nev-plot-1",p.data||[],p.layout||{},Object.assign({responsive:true},p.config||{}));});</script></section>
+<details class="code"><summary>Python 代码</summary><pre><code class="language-python"># 按年份的整体汽车销量和新能源汽车销量趋势图
+fig = go.Figure()
+v_sales_year = v_df.groupby([&#x27;year&#x27;])[&#x27;sales&#x27;].sum().reset_index()
+ev_sales_year = ev_df.groupby([&#x27;year&#x27;])[&#x27;sales&#x27;].sum().reset_index()
+
+fig.add_trace(go.Scatter(x=v_sales_year[&#x27;year&#x27;], y=v_sales_year[&#x27;sales&#x27;], mode=&#x27;lines+markers&#x27;, name=&#x27;整体汽车销量&#x27;))
+fig.add_trace(go.Scatter(x=ev_sales_year[&#x27;year&#x27;], y=ev_sales_year[&#x27;sales&#x27;], mode=&#x27;lines+markers&#x27;, name=&#x27;新能源汽车销量&#x27;))
+
+#绘制电车占比柱状图
+# fig.add_trace(go.Bar(x=ev_sales_year[&#x27;year&#x27;], y=ev_sales_year[&#x27;sales&#x27;]/v_sales_year[&#x27;sales&#x27;], name=&#x27;新能源汽车占比&#x27;, yaxis=&#x27;y2&#x27;))
+
+fig.show()</code></pre></details>
+<section class="cell-output"><div id="nev-plot-2" class="plotly-graph-div" aria-label="交互式图表 2"></div><script>window.addEventListener("DOMContentLoaded",function(){var p={"data": [{"mode": "lines+markers", "name": "整体汽车销量", "type": "scatter", "x": {"bdata": "AAAAAAB8n0AAAAAAAICfQAAAAAAAhJ9AAAAAAACIn0AAAAAAAIyfQAAAAAAAkJ9AAAAAAACUn0AAAAAAAJifQAAAAAAAnJ9A", "dtype": "f8"}, "y": {"bdata": "AAAAsB45eUEAAADwUlZ6QQAAALBRS3dBAAAAIDd2dkEAAABQcZR0QQAAAHDV1XJBAAAAULXsc0EAAABgvox1QQAAAMAnBW1B", "dtype": "f8"}}, {"mode": "lines+markers", "name": "新能源汽车销量", "type": "scatter", "x": {"bdata": "AAAAAAB8n0AAAAAAAICfQAAAAAAAhJ9AAAAAAACIn0AAAAAAAIyfQAAAAAAAkJ9AAAAAAACUn0AAAAAAAJifQAAAAAAAnJ9A", "dtype": "f8"}, "y": {"bdata": "AAAAAHCI/UAAAAAAQIoCQQAAAACYtRdBAAAAAHKWJ0EAAAAAdHkrQQAAAAB4CDBBAAAAAPRdRUEAAADAOy5XQQAAAEBY4lNB", "dtype": "f8"}}], "layout": {"template": {"data": {"bar": [{"error_x": {"color": "#2a3f5f"}, "error_y": {"color": "#2a3f5f"}, "marker": {"line": {"color": "white", "width": 0.5}, "pattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}}, "type": "bar"}], "barpolar": [{"marker": {"line": {"color": "white", "width": 0.5}, "pattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}}, "type": "barpolar"}], "carpet": [{"aaxis": {"endlinecolor": "#2a3f5f", "gridcolor": "#C8D4E3", "linecolor": "#C8D4E3", "minorgridcolor": "#C8D4E3", "startlinecolor": "#2a3f5f"}, "baxis": {"endlinecolor": "#2a3f5f", "gridcolor": "#C8D4E3", "linecolor": "#C8D4E3", "minorgridcolor": "#C8D4E3", "startlinecolor": "#2a3f5f"}, "type": "carpet"}], "choropleth": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "type": "choropleth"}], "contour": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1, "#f0f921"]], "type": "contour"}], "contourcarpet": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "type": "contourcarpet"}], "heatmap": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1, "#f0f921"]], "type": "heatmap"}], "histogram": [{"marker": {"pattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}}, "type": "histogram"}], "histogram2d": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1, "#f0f921"]], "type": "histogram2d"}], "histogram2dcontour": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1, "#f0f921"]], "type": "histogram2dcontour"}], "mesh3d": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "type": "mesh3d"}], "parcoords": [{"line": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "parcoords"}], "pie": [{"automargin": true, "type": "pie"}], "scatter": [{"fillpattern": {"fillmode": "overlay", "size": 10, "solidity": 0.2}, "type": "scatter"}], "scatter3d": [{"line": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scatter3d"}], "scattercarpet": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scattercarpet"}], "scattergeo": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scattergeo"}], "scattergl": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scattergl"}], "scattermap": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scattermap"}], "scatterpolar": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scatterpolar"}], "scatterpolargl": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scatterpolargl"}], "scatterternary": [{"marker": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "type": "scatterternary"}], "surface": [{"colorbar": {"outlinewidth": 0, "ticks": ""}, "colorscale": [[0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1, "#f0f921"]], "type": "surface"}], "table": [{"cells": {"fill": {"color": "#EBF0F8"}, "line": {"color": "white"}}, "header": {"fill": {"color": "#C8D4E3"}, "line": {"color": "white"}}, "type": "table"}]}, "layout": {"annotationdefaults": {"arrowcolor": "#2a3f5f", "arrowhead": 0, "arrowwidth": 1}, "autotypenumbers": "strict", "coloraxis": {"colorbar": {"outlinewidth": 0, "ticks": ""}}, "colorscale": {"diverging": [[0, "#8e0152"], [0.1, "#c51b7d"], [0.2, "#de77ae"], [0.3, "#f1b6da"], [0.4, "#fde0ef"], [0.5, "#f7f7f7"], [0.6, "#e6f5d0"], [0.7, "#b8e186"], [0.8, "#7fbc41"], [0.9, "#4d9221"], [1, "#276419"]], "sequential": [[0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1, "#f0f921"]], "sequentialminus": [[0, "#0d0887"], [0.1111111111111111, "#46039f"], [0.2222222222222222, "#7201a8"], [0.3333333333333333, "#9c179e"], [0.4444444444444444, "#bd3786"], [0.5555555555555556, "#d8576b"], [0.6666666666666666, "#ed7953"], [0.7777777777777778, "#fb9f3a"], [0.8888888888888888, "#fdca26"], [1, "#f0f921"]]}, "colorway": ["#636efa", "#EF553B", "#00cc96", "#ab63fa", "#FFA15A", "#19d3f3", "#FF6692", "#B6E880", "#FF97FF", "#FECB52"], "font": {"color": "#2a3f5f"}, "geo": {"bgcolor": "white", "lakecolor": "white", "landcolor": "white", "showlakes": true, "showland": true, "subunitcolor": "#C8D4E3"}, "hoverlabel": {"align": "left"}, "hovermode": "closest", "paper_bgcolor": "white", "plot_bgcolor": "white", "polar": {"angularaxis": {"gridcolor": "#EBF0F8", "linecolor": "#EBF0F8", "ticks": ""}, "bgcolor": "white", "radialaxis": {"gridcolor": "#EBF0F8", "linecolor": "#EBF0F8", "ticks": ""}}, "scene": {"xaxis": {"backgroundcolor": "white", "gridcolor": "#DFE8F3", "gridwidth": 2, "linecolor": "#EBF0F8", "showbackground": true, "ticks": "", "zerolinecolor": "#EBF0F8"}, "yaxis": {"backgroundcolor": "white", "gridcolor": "#DFE8F3", "gridwidth": 2, "linecolor": "#EBF0F8", "showbackground": true, "ticks": "", "zerolinecolor": "#EBF0F8"}, "zaxis": {"backgroundcolor": "white", "gridcolor": "#DFE8F3", "gridwidth": 2, "linecolor": "#EBF0F8", "showbackground": true, "ticks": "", "zerolinecolor": "#EBF0F8"}}, "shapedefaults": {"line": {"color": "#2a3f5f"}}, "ternary": {"aaxis": {"gridcolor": "#DFE8F3", "linecolor": "#A2B1C6", "ticks": ""}, "baxis": {"gridcolor": "#DFE8F3", "linecolor": "#A2B1C6", "ticks": ""}, "bgcolor": "white", "caxis": {"gridcolor": "#DFE8F3", "linecolor": "#A2B1C6", "ticks": ""}}, "title": {"x": 0.05}, "xaxis": {"automargin": true, "gridcolor": "#EBF0F8", "linecolor": "#EBF0F8", "ticks": "", "title": {"standoff": 15}, "zerolinecolor": "#EBF0F8", "zerolinewidth": 2}, "yaxis": {"automargin": true, "gridcolor": "#EBF0F8", "linecolor": "#EBF0F8", "ticks": "", "title": {"standoff": 15}, "zerolinecolor": "#EBF0F8", "zerolinewidth": 2}}}}}; Plotly.newPlot("nev-plot-2",p.data||[],p.layout||{},Object.assign({responsive:true},p.config||{}));});</script></section>
+<section class="markdown"><hr>
+<h1>按品牌的研究分析</h1>
+<p>这一部分按品牌比较当月销量、同比、环比、市场份额和排名变化，并关注重点品牌最近12个月的走势。</p>
+<p>建议图表：品牌销量横向排名图、份额趋势图、排名变化图和同比—环比四象限图。可以设置分析月份、品牌、TOP N和时间范围等筛选条件。</p></section>
+<details class="code"><summary>Python 代码</summary><pre><code class="language-python"># TODO：计算品牌销量、同比/环比、市场份额、排名及排名变化</code></pre></details>
+<details class="code"><summary>Python 代码</summary><pre><code class="language-python"># TODO：使用Plotly绘制品牌排名、份额趋势、排名变化和同比—环比四象限图</code></pre></details>
+<section class="markdown"><h3>数据观察</h3>
+<p>&lt;!-- 写清月份、品牌、数值和比较基期。例如：某品牌在某月销量排名上升X位。 --&gt;</p>
+<h3>可能原因</h3>
+<p>&lt;!-- 可以提出上新、价格调整或促销等可能解释，但不要直接写成确定原因。 --&gt;</p>
+<h3>待验证假设</h3>
+<p>&lt;!-- 写下下一步想验证的问题，以及需要补充什么数据。 --&gt;</p></section>
+<section class="markdown"><hr>
+<h1>按车型的研究分析</h1>
+<p>这一部分按车型观察销量排名、品牌内车型数量和TOP1/TOP3车型贡献，了解品牌销量是否依赖少数热门车型。</p>
+<p>建议图表：车型销量排行榜、品牌车型结构堆叠图、车型贡献率图和重点车型月度趋势图。</p></section>
+<details class="code"><summary>Python 代码</summary><pre><code class="language-python"># TODO：计算车型销量排名、车型数量、TOP1/TOP3贡献率及车型状态</code></pre></details>
+<details class="code"><summary>Python 代码</summary><pre><code class="language-python"># TODO：使用Plotly绘制车型排名、品牌车型结构、贡献率和重点车型趋势</code></pre></details>
+<section class="markdown"><h3>数据观察</h3>
+<p>&lt;!-- 写清月份、车型或品牌、数值和比较基期。 --&gt;</p>
+<h3>可能原因</h3>
+<p>&lt;!-- 可以提出新品上市、车型换代等可能解释，但不要直接写成确定原因。 --&gt;</p>
+<h3>待验证假设</h3>
+<p>&lt;!-- 写下下一步想验证的问题，以及需要补充什么数据。 --&gt;</p></section>
+<section class="markdown"><hr>
+<h1>异常波动监控</h1>
+<p>这一部分按照前面设定的规则，找出销量、份额或排名变化较大的品牌和车型，并整理成便于复查的异常清单。</p>
+<p>异常分组：销量明显增长、销量明显下降、份额明显变化、排名明显变化、新增记录和低基数波动。低基数对象单独标注，避免小销量变化被放大解读。</p>
+<p>建议图表：异常月份时间线、异常对象排行榜、月度销量热力图和异常明细表。异常只是值得关注的信号，后续仍需查看更详细的资料。</p></section>
+<details class="code"><summary>Python 代码</summary><pre><code class="language-python"># TODO：应用固定阈值和低基数规则，生成品牌与车型异常清单</code></pre></details>
+<details class="code"><summary>Python 代码</summary><pre><code class="language-python"># TODO：使用Plotly绘制异常时间线、异常排名、销量热力图和异常明细表</code></pre></details>
+<section class="markdown"><h3>数据观察</h3>
+<p>&lt;!-- 写清异常发生的月份、对象、触发规则和具体数值。 --&gt;</p>
+<h3>可能原因</h3>
+<p>&lt;!-- 说明可能需要查看哪些外部信息，但不要仅凭销量变化确定原因。 --&gt;</p>
+<h3>待验证假设</h3>
+<p>&lt;!-- 写下需要补充的数据，以及准备如何验证。 --&gt;</p></section>
+<section class="markdown"><hr>
+<h1>Plotly可筛选经营看板</h1>
+<h2>看板布局</h2>
+<ol><li>顶部：分析月份及核心KPI。</li><li>左侧：最近12个月销量、同比和环比趋势。</li><li>右侧：品牌销量排名及市场份额。</li><li>下方：车型结构和车型贡献。</li><li>底部：异常清单与异常趋势。</li></ol>
+<h2>交互设计</h2>
+<ul><li>Plotly日期范围滑块。</li><li>品牌下拉选择。</li><li>销量、同比、环比和份额指标切换。</li><li>TOP N切换。</li><li>异常类型筛选。</li><li>Notebook参数单元格统一控制分析月份。</li></ul>
+<p>图表使用白色主题、固定品牌配色，并写清单位和比较月份。标题以描述图表内容为主，不提前写出结论。</p></section>
+<details class="code"><summary>Python 代码</summary><pre><code class="language-python"># TODO：根据分析月份和筛选参数准备Plotly看板数据</code></pre></details>
+<details class="code"><summary>Python 代码</summary><pre><code class="language-python"># TODO：使用Plotly组装可筛选的月度经营看板</code></pre></details>
+<section class="markdown"><hr>
+<h1>本月经营摘要与待跟进事项</h1>
+<p>这一页用于面试展示时快速说明“本月发生了什么、我从数据中看到了什么、下一步还想验证什么”。所有结论应以本Notebook前面的图表和指标为依据。</p>
+<h2>本月核心表现</h2>
+<table><thead><tr><th>指标</th><th>本月结果</th></tr></thead><tbody><tr><td>当月销量</td><td>待填写</td></tr><tr><td>同比</td><td>待填写</td></tr><tr><td>环比</td><td>待填写</td></tr><tr><td>新能源渗透率</td><td>待填写</td></tr><tr><td>市场份额最高品牌</td><td>待填写（写明份额）</td></tr><tr><td>变化最大品牌</td><td>待填写（写明变化指标）</td></tr><tr><td>变化最大车型</td><td>待填写（写明变化指标）</td></tr></tbody></table>
+<h2>数据观察</h2>
+<p>&lt;!-- 用2—3句话总结最重要的数据变化，并写清对象、月份和数值。 --&gt;</p>
+<h2>可能原因</h2>
+<p>&lt;!-- 用“可能与……有关”描述原因，不把推测写成结论。 --&gt;</p>
+<h2>待验证假设</h2>
+<table><thead><tr><th>想验证的问题</th><th>需要补充的数据</th><th>我准备怎么验证</th><th>优先级</th></tr></thead><tbody><tr><td>待填写</td><td>待填写</td><td>待填写</td><td>待填写</td></tr></tbody></table>
+<h2>待跟进事项</h2>
+<table><thead><tr><th>下一步要做什么</th><th>关联的变化</th><th>需要查看的数据/资料</th><th>完成情况</th></tr></thead><tbody><tr><td>待填写</td><td>待填写</td><td>待填写</td><td>待填写</td></tr></tbody></table></section>
+<details class="code"><summary>Python 代码</summary><pre><code class="language-python"># TODO：根据选定月份的已验证指标生成本月核心表现摘要所需数据</code></pre></details>
+<section class="markdown"><hr>
+<h1>数据限制与后续方向</h1>
+<ul><li>记录实际数据截止月份、缺失字段和清洗处理。</li><li>同比和环比可能受到季节性、春节月份错位及低基数影响。</li><li>销量数据可以描述波动，但不能单独解释波动原因。</li><li>原因验证通常需要价格、渠道、促销、产能、库存、政策和舆情等补充数据。</li><li>目前的分析重点是使用Pandas和Plotly完成Notebook内的月度监控；如有需要，月度指标表和异常清单也可以继续用于Power BI或Tableau。</li><li>后续会从头运行Notebook，核对指标、筛选状态、图表标签和最终摘要。</li></ul></section>
+</main></body></html>
