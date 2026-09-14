@@ -4,6 +4,30 @@ body.has-project-outline main {
   margin-right: auto;
 }
 
+.home-return {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.5rem;
+  padding: 0 .9rem;
+  margin: 0 0 16px;
+  border: 1px solid #d8caee;
+  border-radius: 999px;
+  color: #592694;
+  background: rgba(255, 255, 255, .94);
+  box-shadow: 0 6px 18px rgba(83, 48, 121, .10);
+  font-size: .9rem;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.home-return:hover,
+.home-return:focus-visible {
+  color: #fff;
+  background: #6425c7;
+  outline: none;
+}
+
 .project-outline {
   position: fixed;
   z-index: 20;
