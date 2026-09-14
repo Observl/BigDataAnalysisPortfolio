@@ -5,11 +5,15 @@ body.has-project-outline main {
 }
 
 .home-return {
+  position: fixed;
+  z-index: 40;
+  top: 24px;
+  left: 24px;
   display: inline-flex;
   align-items: center;
   min-height: 2.5rem;
   padding: 0 .9rem;
-  margin: 0 0 16px;
+  margin: 0;
   border: 1px solid #d8caee;
   border-radius: 999px;
   color: #592694;
@@ -26,6 +30,16 @@ body.has-project-outline main {
   color: #fff;
   background: #6425c7;
   outline: none;
+}
+
+@media (max-width: 560px) {
+  .home-return {
+    top: 12px;
+    left: 12px;
+    min-height: 2.25rem;
+    padding: 0 .75rem;
+    font-size: .82rem;
+  }
 }
 
 .project-outline {

@@ -66,6 +66,11 @@
     if (!window.Plotly) return;
     container.querySelectorAll(".plotly-graph-div").forEach(function (graph) {
       if (!graph._fullLayout) return;
+      var output = graph.closest(".chart-output");
+      var width = output ? Math.round(output.getBoundingClientRect().width) : 0;
+      if (width > 0 && graph.layout && Number.isFinite(graph.layout.width) && Math.round(graph.layout.width) !== width) {
+        window.Plotly.relayout(graph, { width: width });
+      }
       window.Plotly.Plots.resize(graph);
     });
   }
