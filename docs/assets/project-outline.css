@@ -163,11 +163,20 @@ h1.section-toggle { scroll-margin-top: 28px; }
 .cell-output { max-width: 100%; }
 
 .cell-output.chart-output {
+  position: relative;
   width: 100%;
   max-width: 100%;
   min-width: 0;
+  box-sizing: border-box;
+  padding: .35rem;
+  border: 1px solid #e8e0f1;
+  border-radius: 12px;
+  background: #fff;
   overflow: visible;
 }
+
+/* One Notebook chart output is an isolated rendering boundary. */
+.cell-output.chart-output.isolated-chart-output { isolation: isolate; }
 
 .cell-output.chart-output .plotly-graph-div {
   width: 100% !important;
@@ -175,16 +184,12 @@ h1.section-toggle { scroll-margin-top: 28px; }
   min-width: 0 !important;
 }
 
-.three-panel-wrapper { container-type: inline-size; }
-.three-panel-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.5rem; }
-.three-panel-card { min-width: 0; padding: .35rem; border: 1px solid #e8e0f1; border-radius: 12px; background: #fff; }
-.three-panel-card .plotly-graph-div { min-height: 470px; }
-
-@container (min-width: 900px) {
-  .three-panel-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1rem; }
-  .three-panel-card { padding: .2rem; }
-  .three-panel-card .plotly-graph-div { min-height: 470px; }
-}
+.brand-grid-wrapper { container-type: inline-size; }
+.brand-grid-controls { display: grid; grid-template-columns: auto 1fr; gap: .7rem; align-items: center; margin: 0 0 1rem; color: #592694; font-weight: 700; }
+.brand-grid-controls output { min-width: 3.5em; }
+.brand-grid-controls input { grid-column: 1 / -1; width: 100%; accent-color: #6425c7; }
+.compound-figure-stage { width: 100%; min-width: 0; }
+.compound-figure-stage .plotly-graph-div { min-height: 520px; }
 
 @media (max-width: 1050px) {
   body.has-project-outline main { width: min(1120px, calc(100% - 32px)); margin: 0 auto; }

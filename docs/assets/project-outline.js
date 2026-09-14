@@ -7,60 +7,23 @@
     return JSON.parse(JSON.stringify(value));
   }
 
-  window.renderResponsiveThreePanel = function (id, figure) {
+  // Global chart rule: one Notebook output owns one Plotly container.  This
+  // gives every chart (including compound figures) a distinct lifecycle and
+  // prevents Plotly DOM state from leaking into the next output.
+  window.renderIsolatedPlot = function (id, figure) {
     var source = document.getElementById(id);
     if (!source || !window.Plotly) return;
+    var output = source.closest(".chart-output");
+    if (output) output.classList.add("isolated-chart-output");
+    var layout = cloneValue(figure.layout || {});
+    delete layout.width;
+    layout.autosize = true;
+    return window.Plotly.newPlot(source, cloneValue(figure.data || []), layout, Object.assign({ responsive: true }, cloneValue(figure.config || {})));
+  };
 
-    var panels = [
-      { x: "x", y: "y", xaxis: "xaxis", yaxis: "yaxis", annotation: 0 },
-      { x: "x2", y: "y2", xaxis: "xaxis2", yaxis: "yaxis2", annotation: 1 },
-      { x: "x3", y: "y3", xaxis: "xaxis3", yaxis: "yaxis3", annotation: 2 }
-    ];
-    var wrapper = document.createElement("div");
-    wrapper.className = "three-panel-wrapper";
-    var grid = document.createElement("div");
-    grid.className = "three-panel-grid";
-    wrapper.appendChild(grid);
-    source.replaceWith(wrapper);
-
-    panels.forEach(function (panel, index) {
-      var card = document.createElement("section");
-      card.className = "three-panel-card";
-      var graph = document.createElement("div");
-      graph.id = id + "-panel-" + (index + 1);
-      graph.className = "plotly-graph-div";
-      graph.setAttribute("aria-label", "交互式图表 " + (index + 1));
-      card.appendChild(graph);
-      grid.appendChild(card);
-
-      var traces = (figure.data || []).filter(function (trace) {
-        return (trace.xaxis || "x") === panel.x && (trace.yaxis || "y") === panel.y;
-      }).map(function (trace) {
-        var copy = cloneValue(trace);
-        delete copy.xaxis;
-        delete copy.yaxis;
-        return copy;
-      });
-      var xaxis = cloneValue((figure.layout || {})[panel.xaxis] || {});
-      var yaxis = cloneValue((figure.layout || {})[panel.yaxis] || {});
-      delete xaxis.domain;
-      delete xaxis.anchor;
-      delete yaxis.domain;
-      delete yaxis.anchor;
-      var annotation = ((figure.layout || {}).annotations || [])[panel.annotation] || {};
-      var layout = {
-        template: (figure.layout || {}).template,
-        height: 470,
-        margin: { l: 82, r: 26, t: 72, b: 76 },
-        title: { text: annotation.text || "", x: 0.5, xanchor: "center", font: { size: 16 } },
-        xaxis: xaxis,
-        yaxis: yaxis,
-        showlegend: true,
-        legend: { orientation: "h", x: 0.5, xanchor: "center", y: -0.27 }
-      };
-      window.Plotly.newPlot(graph, traces, layout, Object.assign({ responsive: true }, figure.config || {}));
-    });
-  }
+  // Older Notebook exports call this name for a three-panel figure.  It now
+  // deliberately retains the original combined canvas and its original legend.
+  window.renderResponsiveThreePanel = window.renderIsolatedPlot;
 
   function resizePlots(container) {
     if (!window.Plotly) return;
@@ -74,6 +37,107 @@
       window.Plotly.Plots.resize(graph);
     });
   }
+
+  function setTraceValue(trace, path, value) {
+    var keys = path.split(".");
+    var target = trace;
+    keys.slice(0, -1).forEach(function (key) {
+      target[key] = target[key] || {};
+      target = target[key];
+    });
+    target[keys[keys.length - 1]] = value;
+  }
+
+  // Keep every multi-panel Plotly report in one canvas.  A separate native
+  // control switches immutable per-year snapshots, so Plotly never updates a
+  // subplot in place or shares its slider state with a later chart.
+  window.renderResponsiveCompoundFigure = function (id, figure) {
+    var source = document.getElementById(id);
+    var sliderData = figure && figure.layout && figure.layout.sliders && figure.layout.sliders[0];
+    if (!source || !window.Plotly || !sliderData || !Array.isArray(sliderData.steps)) return;
+    var output = source.closest(".chart-output");
+    if (output) output.classList.add("isolated-chart-output");
+
+    var wrapper = document.createElement("div");
+    wrapper.className = "brand-grid-wrapper";
+    var controls = document.createElement("label");
+    controls.className = "brand-grid-controls";
+    controls.textContent = "年份：";
+    var year = document.createElement("output");
+    var slider = document.createElement("input");
+    slider.type = "range";
+    slider.min = "0";
+    slider.max = String(sliderData.steps.length - 1);
+    slider.step = "1";
+    slider.value = String(sliderData.active || 0);
+    slider.setAttribute("aria-label", "选择年份");
+    controls.appendChild(year);
+    controls.appendChild(slider);
+    var stage = document.createElement("div");
+    stage.className = "compound-figure-stage";
+    wrapper.appendChild(controls);
+    wrapper.appendChild(stage);
+    source.replaceWith(wrapper);
+
+    var snapshots = sliderData.steps.map(function (step) {
+      var data = cloneValue(figure.data || []);
+      var layout = cloneValue(figure.layout || {});
+      var dataUpdates = step.args && step.args[0] || {};
+      Object.keys(dataUpdates).forEach(function (path) {
+        var values = dataUpdates[path];
+        if (!Array.isArray(values)) return;
+        values.forEach(function (value, traceIndex) {
+          if (value !== null && value !== undefined && data[traceIndex]) {
+            setTraceValue(data[traceIndex], path, cloneValue(value));
+          }
+        });
+      });
+      var layoutUpdates = step.args && step.args[1] || {};
+      Object.keys(layoutUpdates).forEach(function (path) {
+        setTraceValue(layout, path, cloneValue(layoutUpdates[path]));
+      });
+      // The old Plotly slider belongs to the source figure.  The native range
+      // above is intentionally the sole state controller for this chart.
+      delete layout.sliders;
+      delete layout.width;
+      layout.autosize = true;
+      return {
+        label: step.label || "",
+        data: data,
+        layout: layout,
+        config: Object.assign({ responsive: true }, cloneValue(figure.config || {}))
+      };
+    });
+    var renderVersion = 0;
+
+    function render(index) {
+      var version = ++renderVersion;
+      var snapshot = snapshots[index];
+      year.textContent = snapshot.label || String(index);
+      stage.querySelectorAll(".plotly-graph-div").forEach(function (graph) {
+        window.Plotly.purge(graph);
+      });
+      stage.replaceChildren();
+      var graph = document.createElement("div");
+      graph.id = id + "-year-" + index;
+      graph.className = "plotly-graph-div";
+      graph.setAttribute("aria-label", "年度组合交互式图表");
+      stage.appendChild(graph);
+      window.Plotly.newPlot(graph, cloneValue(snapshot.data), cloneValue(snapshot.layout), cloneValue(snapshot.config)).then(function () {
+        if (version === renderVersion) schedulePlotResize(wrapper);
+      });
+    }
+
+    slider.addEventListener("input", function () {
+      year.textContent = snapshots[Number(slider.value)].label || slider.value;
+    });
+    slider.addEventListener("change", function () { render(Number(slider.value)); });
+    render(Number(slider.value));
+  };
+
+  // Backward-compatible name for pages generated before the compound renderer
+  // was renamed.  It deliberately renders one complete 2×2 figure.
+  window.renderResponsiveBrandGrid = window.renderResponsiveCompoundFigure;
 
   function schedulePlotResize(container) {
     requestAnimationFrame(function () {
@@ -103,11 +167,20 @@
     });
   }
 
+  function markIsolatedChartContainers(main) {
+    main.querySelectorAll(".chart-output").forEach(function (output, index) {
+      output.classList.add("isolated-chart-output");
+      output.setAttribute("data-chart-container", String(index + 1));
+    });
+  }
+
   function buildOutline() {
     var main = document.querySelector("main");
     if (!main) return;
     var headings = Array.prototype.slice.call(main.querySelectorAll("h1"));
     if (!headings.length) return;
+
+    markIsolatedChartContainers(main);
 
     document.body.classList.add("has-project-outline");
     var sections = headings.map(function (heading, index) {
