@@ -18,36 +18,36 @@ pio.templates[&quot;clean_white&quot;] = go.layout.Template(
 )
 pio.templates.default = &quot;clean_white&quot;
 
-file_name = &#x27;UserBehavior.csv&#x27;
-db = &#x27;UserBehavior.db&#x27;</code></pre></details><details class="code"><summary>Python 代码</summary><pre><code class="language-python">#创建数据库
+file_name = 'UserBehavior.csv'
+db = 'UserBehavior.db'</code></pre></details><details class="code"><summary>Python 代码</summary><pre><code class="language-python">#创建数据库
 _ = duckdb.connect(db)
 
 _.execute(&quot;&quot;&quot;
-    CREATE OR REPLACE TABLE Raw AS 
-    SELECT 
+    CREATE OR REPLACE TABLE Raw AS
+    SELECT
         column0 AS user_id,
         column1 AS good_id,
         column2 AS prop_id,
         column3 AS act,
         column4 AS ts
-    FROM read_csv(&#x27;UserBehavior.csv&#x27;);
+    FROM read_csv('UserBehavior.csv');
 &quot;&quot;&quot;)
 
 _.close()
-print(&#x27;数据库创建成功！&#x27;)</code></pre></details><section class="cell-output output-fence" aria-label="Notebook 输出"><div class="fence-label">输出</div><pre><code class="language-text">数据库创建成功！
+print('数据库创建成功！')</code></pre></details><section class="cell-output output-fence" aria-label="Notebook 输出"><div class="fence-label">输出</div><pre><code class="language-text">数据库创建成功！
 </code></pre></section><section class="markdown"><hr></section><section class="markdown"><h1>数据清洗</h1></section><section class="markdown"><p>经检查发现原csv文件体量过大，包含一亿条数据，大小高达数GB，对于传统的pandas数据分析会导致电脑内存溢出导致电脑死机。<br> 针对源文件数据量过大的问题，我们最终决定使用在处理大量数据时比较优秀的duckdb来创建数据库，并直接在database中使用SQL语言进行数据清洗。</p></section><details class="code"><summary>Python 代码</summary><pre><code class="language-python">_ = duckdb.connect(db)
 
 #清除重复值
 _.execute(&quot;&quot;&quot;
-    CREATE OR REPLACE TABLE Cleaned AS 
+    CREATE OR REPLACE TABLE Cleaned AS
     SELECT DISTINCT * FROM Raw
 &quot;&quot;&quot;)
 
 #清除缺失值
 _.execute(&quot;&quot;&quot;
     DELETE FROM Cleaned
-    WHERE user_id IS NULL 
-    OR good_id IS NULL 
+    WHERE user_id IS NULL
+    OR good_id IS NULL
     OR act IS NULL
     OR ts IS NULL
     OR prop_id IS NULL;
@@ -56,7 +56,7 @@ _.execute(&quot;&quot;&quot;
 #清除逻辑异常值
 _.execute(&quot;&quot;&quot;
     DELETE FROM Cleaned
-    WHERE act NOT IN (&#x27;pv&#x27;,&#x27;cart&#x27;,&#x27;fav&#x27;,&#x27;buy&#x27;)
+    WHERE act NOT IN ('pv','cart','fav','buy')
     OR ts &lt; 1511539200
     OR ts &gt;= 1512316800;
 &quot;&quot;&quot;)
@@ -64,24 +64,24 @@ _.execute(&quot;&quot;&quot;
 #清理不相关用户
 _.execute(&quot;&quot;&quot;
     DELETE FROM Cleaned
-    WHERE user_id NOT IN (SELECT DISTINCT user_id FROM Cleaned WHERE act=&#x27;pv&#x27;)
+    WHERE user_id NOT IN (SELECT DISTINCT user_id FROM Cleaned WHERE act='pv')
 &quot;&quot;&quot;)
 
-print(&#x27;数据清洗完成！&#x27;)
+print('数据清洗完成！')
 _.close()
 </code></pre></details><section class="cell-output output-fence" aria-label="Notebook 输出"><div class="fence-label">输出</div><pre><code class="language-text">数据清洗完成！
 </code></pre></section><section class="markdown"><hr></section><section class="markdown"><h1>数据格式化</h1><p>设置时区，转化为可读时间，并摘出时间特征用于后续时间序列分析。</p></section><details class="code"><summary>Python 代码</summary><pre><code class="language-python">_ = duckdb.connect(db)
 #摘取时间特征信息辅助进行根据时间序列的数据分析
-_.execute(&quot;SET TimeZone = &#x27;Asia/Shanghai&#x27;;&quot;)
+_.execute(&quot;SET TimeZone = 'Asia/Shanghai';&quot;)
 _.execute(&quot;&quot;&quot;
-CREATE OR REPLACE VIEW vCleaned AS 
+CREATE OR REPLACE VIEW vCleaned AS
 WITH _ AS (
-    SELECT 
+    SELECT
         *,
         to_timestamp(ts)::TIMESTAMPTZ AS dt
     FROM Cleaned
 )
-SELECT 
+SELECT
     user_id,
     good_id,
     prop_id,
@@ -98,11 +98,13 @@ _ = duckdb.connect(db)
 _.execute(&quot;&quot;&quot;
     CREATE OR REPLACE VIEW macro AS
         SELECT
-            count(CASE WHEN act=&#x27;pv&#x27; THEN user_id END) AS 总浏览次数,
-            count(CASE WHEN act=&#x27;fav&#x27; THEN user_id END) AS 总收藏次数,
-            count(CASE WHEN act=&#x27;cart&#x27; THEN user_id END) AS 总购物车次数,
-            count(CASE WHEN act IN (&#x27;fav&#x27;, &#x27;cart&#x27;) THEN user_id END) AS 总喜爱次数,
-            count(CASE WHEN act=&#x27;buy&#x27; THEN user_id END) AS 总购买次数,
+            count(DISTINCT user_id) AS 总用户数,
+            count(CASE WHEN act='pv' THEN user_id END) AS 总浏览次数,
+            count(CASE WHEN act='fav' THEN user_id END) AS 总收藏次数,
+            count(CASE WHEN act='cart' THEN user_id END) AS 总购物车次数,
+            count(CASE WHEN act IN ('fav', 'cart') THEN user_id END) AS 总喜爱次数,
+            count(CASE WHEN act='buy' THEN user_id END) AS 总购买次数,
+            count(CASE WHEN act='buy' THEN user_id END) - count(DISTINCT CASE WHEN act='buy' THEN (user_id,good_id) END) AS 总复购次数,
             round(总收藏次数/总浏览次数*100,2) AS 浏览转收藏比,
             round(总购物车次数/总浏览次数*100,2) AS 浏览转购物车比,
             round(总购买次数/总收藏次数*100,2) AS 收藏转购买比,
@@ -114,24 +116,24 @@ _.execute(&quot;&quot;&quot;
 _.close()</code></pre></details><details class="code"><summary>Python 代码</summary><pre><code class="language-python">#检查宏观数据
 _ = duckdb.connect(db)
 print(_.execute(&quot;SELECT * FROM macro LIMIT 5;&quot;).fetchdf())
-_.close()</code></pre></details><section class="cell-output output-fence" aria-label="Notebook 输出"><div class="fence-label">输出</div><pre><code class="language-text">      总浏览次数    总收藏次数   总购物车次数    总喜爱次数    总购买次数  浏览转收藏比  浏览转购物车比  收藏转购买比  \
-0  89660671  2849712  5488279  8337991  2001673    3.18     6.12   70.24   
+_.close()</code></pre></details><section class="cell-output output-fence" aria-label="Notebook 输出"><div class="fence-label">输出</div><pre><code class="language-text">      总浏览次数    总收藏次数   总购物车次数    总喜爱次数    总购买次数  总复购次数  浏览转收藏比  浏览转购物车比  \
+0  89660671  2849712  5488279  8337991  2001673  88799    3.18     6.12
 
-   购物车转购买比  浏览转购买比  
-0    36.47    2.23  
+   收藏转购买比  购物车转购买比  浏览转购买比
+0   70.24    36.47    2.23
 </code></pre></section><details class="code"><summary>Python 代码</summary><pre><code class="language-python">#读取绘制图所需数据
 _ = duckdb.connect(db)
-df = _.execute(&quot;SELECT 总浏览次数,总喜爱次数,总购买次数 FROM macro&quot;).fetchdf()
+df = _.execute(&quot;SELECT 总浏览次数,总喜爱次数,总购买次数,总复购次数 FROM macro&quot;).fetchdf()
 _.close()</code></pre></details><details class="code"><summary>Python 代码</summary><pre><code class="language-python">#绘制漏斗图
 fig = go.Figure(go.Funnel(
     y = list(df.columns),
     x = df.iloc[0],
     textinfo = &quot;value+percent total&quot;,
-    marker_color=[&#x27;blue&#x27;,&#x27;red&#x27;,&#x27;orange&#x27;],
+    marker_color=['blue','red','orange','green'],
     opacity = 0.6))
-fig.show()</code></pre></details><section class="cell-output chart-output"><div style="height:525px; width:100%;">            <script>if (window.MathJax && window.MathJax.Hub && window.MathJax.Hub.Config) {window.MathJax.Hub.Config({SVG: {font: "STIX-Web"}});}</script>                    <div id="93f25116-0be5-4d0d-bd74-b04efee4d3bc" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("93f25116-0be5-4d0d-bd74-b04efee4d3bc")) {                    Plotly.newPlot(                        "93f25116-0be5-4d0d-bd74-b04efee4d3bc",                        [{"marker":{"color":["blue","red","orange"]},"opacity":0.6,"textinfo":"value+percent total","x":{"dtype":"i4","bdata":"\u002fxxYBUc6fwAJix4A"},"y":["\u603b\u6d4f\u89c8\u6b21\u6570","\u603b\u559c\u7231\u6b21\u6570","\u603b\u8d2d\u4e70\u6b21\u6570"],"type":"funnel"}],                        {"template":{"layout":{"paper_bgcolor":"white","plot_bgcolor":"white","xaxis":{"showgrid":false,"zeroline":false},"yaxis":{"showgrid":false,"zeroline":false}}}},                        {"responsive": true}                    ).then(function(){
-                            
-var gd = document.getElementById('93f25116-0be5-4d0d-bd74-b04efee4d3bc');
+fig.show()</code></pre></details><section class="cell-output chart-output"><div style="height:525px; width:100%;">                                <div id="591c5d94-c496-4666-b9df-12adb4f536ff" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("591c5d94-c496-4666-b9df-12adb4f536ff")) {                    Plotly.newPlot(                        "591c5d94-c496-4666-b9df-12adb4f536ff",                        [{"marker":{"color":["blue","red","orange","green"]},"opacity":0.6,"textinfo":"value+percent total","x":{"dtype":"i4","bdata":"\u002fxxYBUc6fwAJix4A31oBAA=="},"y":["\u603b\u6d4f\u89c8\u6b21\u6570","\u603b\u559c\u7231\u6b21\u6570","\u603b\u8d2d\u4e70\u6b21\u6570","\u603b\u590d\u8d2d\u6b21\u6570"],"type":"funnel"}],                        {"template":{"layout":{"paper_bgcolor":"white","plot_bgcolor":"white","xaxis":{"showgrid":false,"zeroline":false},"yaxis":{"showgrid":false,"zeroline":false}}}},                        {"responsive": true}                    ).then(function(){
+
+var gd = document.getElementById('591c5d94-c496-4666-b9df-12adb4f536ff');
 var x = new MutationObserver(function (mutations, observer) {{
         var display = window.getComputedStyle(gd).display;
         if (!display || display === 'none') {{
@@ -153,7 +155,7 @@ if (outputEl) {{
     x.observe(outputEl, {childList: true});
 }}
 
-                        })                };            </script>        </div></section><section class="markdown"><p>数据显示，平台总浏览次数约 8966万次，喜爱次数约 834万次，购买次数约 200万次。收藏约占浏览的 8%，购买约占浏览的 2%，反映出平台拥有较大流量基础，但从浏览到明确购买意向仍存在明显流失。<br></p><p>从经营角度看，主要存在三类优化机会：一是优化推荐引擎和算法与提高搜索精准度，减少低意向浏览，提高商品与用户需求的匹配程度；二是优化商品详情页，通过价格优惠、真实评价、物流时效、退换保障等信息降低用户决策成本；三是加强高意向用户运营，针对收藏、加购及重复浏览用户，通过优惠券、降价提醒和购物车召回促进成交。<br></p><p>建议后续建立“曝光→浏览→收藏→购买→复购”完整漏斗，并按用户、商品、渠道进行拆分，通过A/B测试验证推荐优化、优惠策略和详情页改版的实际效果。因当前数据集没有曝光的相关数据，所以无法分析曝光→浏览的转化效率。<br></p><p>需要注意，目前数据为行为次数汇总，8%和2%属于行为次数比，不能直接视为严格的用户转化率。<br></p><p>整体而言，平台下一阶段应从单纯追求流量增长，转向提升现有流量的转化效率与商业价值。<br></p></section><section class="markdown"><h1>时间序列分析</h1></section><details class="code"><summary>Python 代码</summary><pre><code class="language-python">#读取按星期绘制图所需数据
+                        })                };            </script>        </div></section><section class="markdown"><p>数据显示，平台总浏览次数约 8966万次，喜爱次数约 834万次，购买次数约 200万次。收藏约占浏览的 8%，购买约占浏览的 2%，反映出平台拥有较大流量基础，但从浏览到明确购买意向仍存在明显流失。<br></p><p>从经营角度看，主要存在三类优化机会：<br> 一是优化推荐引擎和算法与提高搜索精准度，减少低意向浏览，提高商品与用户需求的匹配程度；<br> 二是优化商品详情页，通过价格优惠、真实评价、物流时效、退换保障等信息降低用户决策成本；<br> 三是加强高意向用户运营，针对收藏、加购及重复浏览用户，通过优惠券、降价提醒和购物车召回促进成交。<br></p><p>建议后续建立“曝光→浏览→收藏→购买→复购”完整漏斗，并按用户、商品、渠道进行拆分，通过A/B测试验证推荐优化、优惠策略和详情页改版的实际效果。因当前数据集没有曝光的相关数据，所以无法分析曝光→浏览的转化效率。<br></p><p>整体而言，平台下一阶段应从单纯追求流量增长，转向提升现有流量的转化效率与商业价值。<br></p></section><section class="markdown"><h1>时间序列分析</h1></section><details class="code"><summary>Python 代码</summary><pre><code class="language-python">#读取按星期绘制图所需数据
 _ = duckdb.connect(db)
 df = _.execute(&quot;&quot;&quot;
 WITH daily AS
@@ -161,10 +163,10 @@ WITH daily AS
     SELECT
         CAST(时间 AS DATE) AS 日期,
         星期,
-        count(CASE WHEN act=&#x27;pv&#x27; THEN user_id END) AS 总浏览次数,
-        count(CASE WHEN act=&#x27;fav&#x27; THEN user_id END) AS 总收藏次数,
-        count(CASE WHEN act=&#x27;cart&#x27; THEN user_id END) AS 总购物车次数,
-        count(CASE WHEN act=&#x27;buy&#x27; THEN user_id END) AS 总购买次数
+        count(CASE WHEN act='pv' THEN user_id END) AS 总浏览次数,
+        count(CASE WHEN act='fav' THEN user_id END) AS 总收藏次数,
+        count(CASE WHEN act='cart' THEN user_id END) AS 总购物车次数,
+        count(CASE WHEN act='buy' THEN user_id END) AS 总购买次数
     FROM vCleaned
     GROUP BY 1, 2
 )
@@ -185,81 +187,81 @@ ORDER BY 星期
 _.close()
 
 weekday_labels = {
-    1: &#x27;周一&#x27;,
-    2: &#x27;周二&#x27;,
-    3: &#x27;周三&#x27;,
-    4: &#x27;周四&#x27;,
-    5: &#x27;周五&#x27;,
-    6: &#x27;周六&#x27;,
-    7: &#x27;周日&#x27;
+    1: '周一',
+    2: '周二',
+    3: '周三',
+    4: '周四',
+    5: '周五',
+    6: '周六',
+    7: '周日'
 }
-df[&#x27;星期名称&#x27;] = df[&#x27;星期&#x27;].map(weekday_labels)
+df['星期名称'] = df['星期'].map(weekday_labels)
 </code></pre></details><details class="code"><summary>Python 代码</summary><pre><code class="language-python">#按星期的日均互动量与浏览—购买行为次数比
-n = df[&#x27;星期名称&#x27;]
+n = df['星期名称']
 fig = make_subplots(
     rows=1,
     cols=2,
-    specs=[[{&#x27;secondary_y&#x27;: True}, {&#x27;secondary_y&#x27;: False}]],
+    specs=[[{'secondary_y': True}, {'secondary_y': False}]],
     column_widths=[0.75, 0.25],
     horizontal_spacing=0.12,
-    subplot_titles=(&#x27;&#x27;, &#x27;&lt;b&gt;工作日与周末&lt;br&gt;日均互动次数&lt;/b&gt;&#x27;)
+    subplot_titles=('', '&lt;b&gt;工作日与周末&lt;br&gt;日均互动次数&lt;/b&gt;')
 )
 
-fig.add_trace(go.Bar(name=&#x27;浏览次数&#x27;, x=n, y=df[&#x27;日均浏览次数&#x27;]), row=1, col=1)
-fig.add_trace(go.Bar(name=&#x27;收藏次数&#x27;, x=n, y=df[&#x27;日均收藏次数&#x27;]), row=1, col=1)
-fig.add_trace(go.Bar(name=&#x27;购物车次数&#x27;, x=n, y=df[&#x27;日均购物车次数&#x27;]), row=1, col=1)
-fig.add_trace(go.Bar(name=&#x27;购买次数&#x27;, x=n, y=df[&#x27;日均购买次数&#x27;]), row=1, col=1)
+fig.add_trace(go.Bar(name='浏览次数', x=n, y=df['日均浏览次数']), row=1, col=1)
+fig.add_trace(go.Bar(name='收藏次数', x=n, y=df['日均收藏次数']), row=1, col=1)
+fig.add_trace(go.Bar(name='购物车次数', x=n, y=df['日均购物车次数']), row=1, col=1)
+fig.add_trace(go.Bar(name='购买次数', x=n, y=df['日均购买次数']), row=1, col=1)
 
 fig.add_trace(go.Scatter(
-    name=&#x27;浏览与购买行为次数比&#x27;,
+    name='浏览与购买行为次数比',
     x=n,
-    y=df[&#x27;浏览转购买率&#x27;],
-    mode=&#x27;lines+markers&#x27;,
-    line=dict(color=&#x27;#7030A0&#x27;),
-    marker=dict(color=&#x27;#7030A0&#x27;)
+    y=df['浏览转购买率'],
+    mode='lines+markers',
+    line=dict(color='#7030A0'),
+    marker=dict(color='#7030A0')
 ), row=1, col=1, secondary_y=True)
 
-mean_val = df[&#x27;总购买次数&#x27;].sum() * 100.0 / df[&#x27;总浏览次数&#x27;].sum()
+mean_val = df['总购买次数'].sum() * 100.0 / df['总浏览次数'].sum()
 fig.add_trace(go.Scatter(
-    name=&#x27;总体加权行为次数比&#x27;,
+    name='总体加权行为次数比',
     x=n,
     y=[mean_val] * len(n),
-    mode=&#x27;lines&#x27;,
-    line=dict(color=&#x27;grey&#x27;, dash=&#x27;dash&#x27;),
-    hovertemplate=f&#x27;总体加权行为次数比: {mean_val:.2f}%&lt;extra&gt;&lt;/extra&gt;&#x27;
+    mode='lines',
+    line=dict(color='grey', dash='dash'),
+    hovertemplate=f'总体加权行为次数比: {mean_val:.2f}%&lt;extra&gt;&lt;/extra&gt;'
 ), row=1, col=1, secondary_y=True)
 
-interaction_columns = [&#x27;日均浏览次数&#x27;, &#x27;日均收藏次数&#x27;, &#x27;日均购物车次数&#x27;, &#x27;日均购买次数&#x27;]
-df[&#x27;日均互动次数&#x27;] = df[interaction_columns].sum(axis=1)
+interaction_columns = ['日均浏览次数', '日均收藏次数', '日均购物车次数', '日均购买次数']
+df['日均互动次数'] = df[interaction_columns].sum(axis=1)
 
-workday = df[df[&#x27;星期&#x27;] &lt;= 5]
-weekend = df[df[&#x27;星期&#x27;] &gt;= 6]
-workday_avg = (workday[&#x27;日均互动次数&#x27;] * workday[&#x27;样本天数&#x27;]).sum() / workday[&#x27;样本天数&#x27;].sum()
-weekend_avg = (weekend[&#x27;日均互动次数&#x27;] * weekend[&#x27;样本天数&#x27;]).sum() / weekend[&#x27;样本天数&#x27;].sum()
+workday = df[df['星期'] &lt;= 5]
+weekend = df[df['星期'] &gt;= 6]
+workday_avg = (workday['日均互动次数'] * workday['样本天数']).sum() / workday['样本天数'].sum()
+weekend_avg = (weekend['日均互动次数'] * weekend['样本天数']).sum() / weekend['样本天数'].sum()
 change_rate = (weekend_avg / workday_avg - 1) * 100 if workday_avg else 0
 change_count = weekend_avg - workday_avg
-change_direction = &#x27;提高&#x27; if change_rate &gt;= 0 else &#x27;下降&#x27;
+change_direction = '提高' if change_rate &gt;= 0 else '下降'
 
 fig.add_trace(go.Bar(
-    name=&#x27;日均互动次数&#x27;,
-    x=[&#x27;工作日&#x27;, &#x27;周末&#x27;],
+    name='日均互动次数',
+    x=['工作日', '周末'],
     y=[workday_avg, weekend_avg],
-    marker_color=[&#x27;#6B7280&#x27;, &#x27;#FF9CD8&#x27;],
-    text=[f&#x27;{workday_avg:,.0f}&#x27;, f&#x27;{weekend_avg:,.0f}&#x27;],
-    textposition=&#x27;outside&#x27;,
-    hovertemplate=&#x27;%{x}&lt;br&gt;日均互动次数: %{y:,.0f}&lt;extra&gt;&lt;/extra&gt;&#x27;,
+    marker_color=['#6B7280', '#FF9CD8'],
+    text=[f'{workday_avg:,.0f}', f'{weekend_avg:,.0f}'],
+    textposition='outside',
+    hovertemplate='%{x}&lt;br&gt;日均互动次数: %{y:,.0f}&lt;extra&gt;&lt;/extra&gt;',
     showlegend=False
 ), row=1, col=2)
 
 fig.add_annotation(
-    x=&#x27;周末&#x27;,
+    x='周末',
     y=weekend_avg,
-    text=f&#x27;周末较工作日{change_direction}&lt;br&gt;{abs(change_rate):.1f}%（{abs(change_count):,.0f} 次）&#x27;,
+    text=f'周末较工作日{change_direction}&lt;br&gt;{abs(change_rate):.1f}%（{abs(change_count):,.0f} 次）',
     showarrow=True,
     arrowhead=2,
     ax=0,
     ay=-48,
-    font=dict(color=&#x27;#7030A0&#x27;),
+    font=dict(color='#7030A0'),
     row=1,
     col=2
 )
@@ -267,27 +269,27 @@ fig.add_annotation(
 fig.add_annotation(
     x=1,
     y=mean_val,
-    xref=&#x27;x domain&#x27;,
-    yref=&#x27;y2&#x27;,
-    text=f&#x27;总体加权行为次数比: {mean_val:.2f}%&#x27;,
+    xref='x domain',
+    yref='y2',
+    text=f'总体加权行为次数比: {mean_val:.2f}%',
     showarrow=False,
-    xanchor=&#x27;right&#x27;,
-    yanchor=&#x27;bottom&#x27;,
-    font=dict(color=&#x27;grey&#x27;)
+    xanchor='right',
+    yanchor='bottom',
+    font=dict(color='grey')
 )
 
 fig.update_layout(
-    barmode=&#x27;stack&#x27;,
-    title=&#x27;&lt;b&gt;按星期的日均互动量与浏览—购买行为次数比&lt;/b&gt;&#x27;,
-    plot_bgcolor=&#x27;white&#x27;,
-    paper_bgcolor=&#x27;white&#x27;,
+    barmode='stack',
+    title='&lt;b&gt;按星期的日均互动量与浏览—购买行为次数比&lt;/b&gt;',
+    plot_bgcolor='white',
+    paper_bgcolor='white',
     margin=dict(r=120)
 )
 fig.update_xaxes(showgrid=False, zeroline=False, row=1, col=1)
 fig.update_xaxes(showgrid=False, zeroline=False, row=1, col=2)
-fig.update_yaxes(title_text=&#x27;日均互动次数&#x27;, showgrid=False, zeroline=False, row=1, col=1, secondary_y=False)
+fig.update_yaxes(title_text='日均互动次数', showgrid=False, zeroline=False, row=1, col=1, secondary_y=False)
 fig.update_yaxes(
-    title_text=&#x27;浏览与购买行为次数比（%）&#x27;,
+    title_text='浏览与购买行为次数比（%）',
     range=[0, 5],
     showgrid=False,
     zeroline=False,
@@ -297,9 +299,9 @@ fig.update_yaxes(
 )
 fig.update_yaxes(showgrid=False, zeroline=False, row=1, col=2)
 fig.show()
-</code></pre></details><section class="cell-output chart-output"><div style="height:525px; width:100%;">            <script>if (window.MathJax && window.MathJax.Hub && window.MathJax.Hub.Config) {window.MathJax.Hub.Config({SVG: {font: "STIX-Web"}});}</script>                    <div id="2bb0602b-ef74-4108-b031-8fe765b12e7b" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("2bb0602b-ef74-4108-b031-8fe765b12e7b")) {                    Plotly.newPlot(                        "2bb0602b-ef74-4108-b031-8fe765b12e7b",                        [{"name":"\u6d4f\u89c8\u6b21\u6570","x":["\u5468\u4e00","\u5468\u4e8c","\u5468\u4e09","\u5468\u56db","\u5468\u4e94","\u5468\u516d","\u5468\u65e5"],"y":{"dtype":"f8","bdata":"AAAAQKQ+YUEAAACA1t1gQQAAAIB4kWFBAAAAwNLZYUEAAACAlYliQQAAABC3rWRBAAAAIGvLZEE="},"type":"bar","xaxis":"x","yaxis":"y"},{"name":"\u6536\u85cf\u6b21\u6570","x":["\u5468\u4e00","\u5468\u4e8c","\u5468\u4e09","\u5468\u56db","\u5468\u4e94","\u5468\u516d","\u5468\u65e5"],"y":{"dtype":"f8","bdata":"AAAAAJySEUEAAAAA\u002fG4RQQAAAADY+xFBAAAAALAxEkEAAAAAXHUSQQAAAADCCBVBAAAAAGAcFUE="},"type":"bar","xaxis":"x","yaxis":"y"},{"name":"\u8d2d\u7269\u8f66\u6b21\u6570","x":["\u5468\u4e00","\u5468\u4e8c","\u5468\u4e09","\u5468\u56db","\u5468\u4e94","\u5468\u516d","\u5468\u65e5"],"y":{"dtype":"f8","bdata":"AAAAAGJsIEEAAAAAki8gQQAAAABEtyBBAAAAAIAeIUEAAAAAOt4iQQAAAAAJiiRBAAAAAJWMJEE="},"type":"bar","xaxis":"x","yaxis":"y"},{"name":"\u8d2d\u4e70\u6b21\u6570","x":["\u5468\u4e00","\u5468\u4e8c","\u5468\u4e09","\u5468\u56db","\u5468\u4e94","\u5468\u516d","\u5468\u65e5"],"y":{"dtype":"f8","bdata":"AAAAAECDC0EAAAAAYLIJQQAAAABwDgtBAAAAAPDcCkEAAAAAuHgJQQAAAABMzQtBAAAAAPwRDEE="},"type":"bar","xaxis":"x","yaxis":"y"},{"line":{"color":"#7030A0"},"marker":{"color":"#7030A0"},"mode":"lines+markers","name":"\u6d4f\u89c8\u4e0e\u8d2d\u4e70\u884c\u4e3a\u6b21\u6570\u6bd4","x":["\u5468\u4e00","\u5468\u4e8c","\u5468\u4e09","\u5468\u56db","\u5468\u4e94","\u5468\u516d","\u5468\u65e5"],"y":{"dtype":"f8","bdata":"dbIi81\u002fxA0AiH8Z2TwsDQFNOzZU8QANA2Kc0HIzPAkCcS1I7\u002fiwBQC6Aj3NWzgBAS7rm957fAEA="},"type":"scatter","xaxis":"x","yaxis":"y2"},{"hovertemplate":"\u603b\u4f53\u52a0\u6743\u884c\u4e3a\u6b21\u6570\u6bd4: 2.23%\u003cextra\u003e\u003c\u002fextra\u003e","line":{"color":"grey","dash":"dash"},"mode":"lines","name":"\u603b\u4f53\u52a0\u6743\u884c\u4e3a\u6b21\u6570\u6bd4","x":["\u5468\u4e00","\u5468\u4e8c","\u5468\u4e09","\u5468\u56db","\u5468\u4e94","\u5468\u516d","\u5468\u65e5"],"y":[2.2324983492483566,2.2324983492483566,2.2324983492483566,2.2324983492483566,2.2324983492483566,2.2324983492483566,2.2324983492483566],"type":"scatter","xaxis":"x","yaxis":"y2"},{"hovertemplate":"%{x}\u003cbr\u003e\u65e5\u5747\u4e92\u52a8\u6b21\u6570: %{y:,.0f}\u003cextra\u003e\u003c\u002fextra\u003e","marker":{"color":["#6B7280","#FF9CD8"]},"name":"\u65e5\u5747\u4e92\u52a8\u6b21\u6570","showlegend":false,"text":["10,304,674","12,119,241"],"textposition":"outside","x":["\u5de5\u4f5c\u65e5","\u5468\u672b"],"y":[10304674.2,12119241.0],"type":"bar","xaxis":"x2","yaxis":"y3"}],                        {"template":{"layout":{"paper_bgcolor":"white","plot_bgcolor":"white","xaxis":{"showgrid":false,"zeroline":false},"yaxis":{"showgrid":false,"zeroline":false}}},"xaxis":{"anchor":"y","domain":[0.0,0.615],"showgrid":false,"zeroline":false},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"\u65e5\u5747\u4e92\u52a8\u6b21\u6570"},"showgrid":false,"zeroline":false},"yaxis2":{"anchor":"x","overlaying":"y","side":"right","title":{"text":"\u6d4f\u89c8\u4e0e\u8d2d\u4e70\u884c\u4e3a\u6b21\u6570\u6bd4\uff08%\uff09"},"range":[0,5],"showgrid":false,"zeroline":false},"xaxis2":{"anchor":"y3","domain":[0.735,0.94],"showgrid":false,"zeroline":false},"yaxis3":{"anchor":"x2","domain":[0.0,1.0],"showgrid":false,"zeroline":false},"annotations":[{"font":{"size":16},"showarrow":false,"text":"\u003cb\u003e\u5de5\u4f5c\u65e5\u4e0e\u5468\u672b\u003cbr\u003e\u65e5\u5747\u4e92\u52a8\u6b21\u6570\u003c\u002fb\u003e","x":0.8374999999999999,"xanchor":"center","xref":"paper","y":1.0,"yanchor":"bottom","yref":"paper"},{"arrowhead":2,"ax":0,"ay":-48,"font":{"color":"#7030A0"},"showarrow":true,"text":"\u5468\u672b\u8f83\u5de5\u4f5c\u65e5\u63d0\u9ad8\u003cbr\u003e17.6%\uff081,814,567 \u6b21\uff09","x":"\u5468\u672b","xref":"x2","y":12119241.0,"yref":"y3"},{"font":{"color":"grey"},"showarrow":false,"text":"\u603b\u4f53\u52a0\u6743\u884c\u4e3a\u6b21\u6570\u6bd4: 2.23%","x":1,"xanchor":"right","xref":"x domain","y":2.2324983492483566,"yanchor":"bottom","yref":"y2"}],"margin":{"r":120},"barmode":"stack","title":{"text":"\u003cb\u003e\u6309\u661f\u671f\u7684\u65e5\u5747\u4e92\u52a8\u91cf\u4e0e\u6d4f\u89c8\u2014\u8d2d\u4e70\u884c\u4e3a\u6b21\u6570\u6bd4\u003c\u002fb\u003e"},"plot_bgcolor":"white","paper_bgcolor":"white"},                        {"responsive": true}                    ).then(function(){
-                            
-var gd = document.getElementById('2bb0602b-ef74-4108-b031-8fe765b12e7b');
+</code></pre></details><section class="cell-output chart-output"><div style="height:525px; width:100%;">                                <div id="62277bb8-b526-4718-a1a9-c8cd3a57dc5f" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("62277bb8-b526-4718-a1a9-c8cd3a57dc5f")) {                    Plotly.newPlot(                        "62277bb8-b526-4718-a1a9-c8cd3a57dc5f",                        [{"name":"\u6d4f\u89c8\u6b21\u6570","x":["\u5468\u4e00","\u5468\u4e8c","\u5468\u4e09","\u5468\u56db","\u5468\u4e94","\u5468\u516d","\u5468\u65e5"],"y":{"dtype":"f8","bdata":"AAAAQKQ+YUEAAACA1t1gQQAAAIB4kWFBAAAAwNLZYUEAAACAlYliQQAAABC3rWRBAAAAIGvLZEE="},"type":"bar","xaxis":"x","yaxis":"y"},{"name":"\u6536\u85cf\u6b21\u6570","x":["\u5468\u4e00","\u5468\u4e8c","\u5468\u4e09","\u5468\u56db","\u5468\u4e94","\u5468\u516d","\u5468\u65e5"],"y":{"dtype":"f8","bdata":"AAAAAJySEUEAAAAA\u002fG4RQQAAAADY+xFBAAAAALAxEkEAAAAAXHUSQQAAAADCCBVBAAAAAGAcFUE="},"type":"bar","xaxis":"x","yaxis":"y"},{"name":"\u8d2d\u7269\u8f66\u6b21\u6570","x":["\u5468\u4e00","\u5468\u4e8c","\u5468\u4e09","\u5468\u56db","\u5468\u4e94","\u5468\u516d","\u5468\u65e5"],"y":{"dtype":"f8","bdata":"AAAAAGJsIEEAAAAAki8gQQAAAABEtyBBAAAAAIAeIUEAAAAAOt4iQQAAAAAJiiRBAAAAAJWMJEE="},"type":"bar","xaxis":"x","yaxis":"y"},{"name":"\u8d2d\u4e70\u6b21\u6570","x":["\u5468\u4e00","\u5468\u4e8c","\u5468\u4e09","\u5468\u56db","\u5468\u4e94","\u5468\u516d","\u5468\u65e5"],"y":{"dtype":"f8","bdata":"AAAAAECDC0EAAAAAYLIJQQAAAABwDgtBAAAAAPDcCkEAAAAAuHgJQQAAAABMzQtBAAAAAPwRDEE="},"type":"bar","xaxis":"x","yaxis":"y"},{"line":{"color":"#7030A0"},"marker":{"color":"#7030A0"},"mode":"lines+markers","name":"\u6d4f\u89c8\u4e0e\u8d2d\u4e70\u884c\u4e3a\u6b21\u6570\u6bd4","x":["\u5468\u4e00","\u5468\u4e8c","\u5468\u4e09","\u5468\u56db","\u5468\u4e94","\u5468\u516d","\u5468\u65e5"],"y":{"dtype":"f8","bdata":"dbIi81\u002fxA0AiH8Z2TwsDQFNOzZU8QANA2Kc0HIzPAkCcS1I7\u002fiwBQC6Aj3NWzgBAS7rm957fAEA="},"type":"scatter","xaxis":"x","yaxis":"y2"},{"hovertemplate":"\u603b\u4f53\u52a0\u6743\u884c\u4e3a\u6b21\u6570\u6bd4: 2.23%\u003cextra\u003e\u003c\u002fextra\u003e","line":{"color":"grey","dash":"dash"},"mode":"lines","name":"\u603b\u4f53\u52a0\u6743\u884c\u4e3a\u6b21\u6570\u6bd4","x":["\u5468\u4e00","\u5468\u4e8c","\u5468\u4e09","\u5468\u56db","\u5468\u4e94","\u5468\u516d","\u5468\u65e5"],"y":[2.2324983492483566,2.2324983492483566,2.2324983492483566,2.2324983492483566,2.2324983492483566,2.2324983492483566,2.2324983492483566],"type":"scatter","xaxis":"x","yaxis":"y2"},{"hovertemplate":"%{x}\u003cbr\u003e\u65e5\u5747\u4e92\u52a8\u6b21\u6570: %{y:,.0f}\u003cextra\u003e\u003c\u002fextra\u003e","marker":{"color":["#6B7280","#FF9CD8"]},"name":"\u65e5\u5747\u4e92\u52a8\u6b21\u6570","showlegend":false,"text":["10,304,674","12,119,241"],"textposition":"outside","x":["\u5de5\u4f5c\u65e5","\u5468\u672b"],"y":[10304674.2,12119241.0],"type":"bar","xaxis":"x2","yaxis":"y3"}],                        {"template":{"layout":{"paper_bgcolor":"white","plot_bgcolor":"white","xaxis":{"showgrid":false,"zeroline":false},"yaxis":{"showgrid":false,"zeroline":false}}},"xaxis":{"anchor":"y","domain":[0.0,0.615],"showgrid":false,"zeroline":false},"yaxis":{"anchor":"x","domain":[0.0,1.0],"title":{"text":"\u65e5\u5747\u4e92\u52a8\u6b21\u6570"},"showgrid":false,"zeroline":false},"yaxis2":{"anchor":"x","overlaying":"y","side":"right","title":{"text":"\u6d4f\u89c8\u4e0e\u8d2d\u4e70\u884c\u4e3a\u6b21\u6570\u6bd4\uff08%\uff09"},"range":[0,5],"showgrid":false,"zeroline":false},"xaxis2":{"anchor":"y3","domain":[0.735,0.94],"showgrid":false,"zeroline":false},"yaxis3":{"anchor":"x2","domain":[0.0,1.0],"showgrid":false,"zeroline":false},"annotations":[{"font":{"size":16},"showarrow":false,"text":"\u003cb\u003e\u5de5\u4f5c\u65e5\u4e0e\u5468\u672b\u003cbr\u003e\u65e5\u5747\u4e92\u52a8\u6b21\u6570\u003c\u002fb\u003e","x":0.8374999999999999,"xanchor":"center","xref":"paper","y":1.0,"yanchor":"bottom","yref":"paper"},{"arrowhead":2,"ax":0,"ay":-48,"font":{"color":"#7030A0"},"showarrow":true,"text":"\u5468\u672b\u8f83\u5de5\u4f5c\u65e5\u63d0\u9ad8\u003cbr\u003e17.6%\uff081,814,567 \u6b21\uff09","x":"\u5468\u672b","xref":"x2","y":12119241.0,"yref":"y3"},{"font":{"color":"grey"},"showarrow":false,"text":"\u603b\u4f53\u52a0\u6743\u884c\u4e3a\u6b21\u6570\u6bd4: 2.23%","x":1,"xanchor":"right","xref":"x domain","y":2.2324983492483566,"yanchor":"bottom","yref":"y2"}],"margin":{"r":120},"barmode":"stack","title":{"text":"\u003cb\u003e\u6309\u661f\u671f\u7684\u65e5\u5747\u4e92\u52a8\u91cf\u4e0e\u6d4f\u89c8\u2014\u8d2d\u4e70\u884c\u4e3a\u6b21\u6570\u6bd4\u003c\u002fb\u003e"},"plot_bgcolor":"white","paper_bgcolor":"white"},                        {"responsive": true}                    ).then(function(){
+
+var gd = document.getElementById('62277bb8-b526-4718-a1a9-c8cd3a57dc5f');
 var x = new MutationObserver(function (mutations, observer) {{
         var display = window.getComputedStyle(gd).display;
         if (!display || display === 'none') {{
@@ -329,10 +331,10 @@ _.execute(&quot;&quot;&quot;
         SELECT
             小时,
             星期,
-            count(CASE WHEN act=&#x27;pv&#x27; THEN user_id END) AS 总浏览次数,
-            count(CASE WHEN act=&#x27;fav&#x27; THEN user_id END) AS 总收藏次数,
-            count(CASE WHEN act=&#x27;cart&#x27; THEN user_id END) AS 总购物车次数,
-            count(CASE WHEN act=&#x27;buy&#x27; THEN user_id END) AS 总购买次数
+            count(CASE WHEN act='pv' THEN user_id END) AS 总浏览次数,
+            count(CASE WHEN act='fav' THEN user_id END) AS 总收藏次数,
+            count(CASE WHEN act='cart' THEN user_id END) AS 总购物车次数,
+            count(CASE WHEN act='buy' THEN user_id END) AS 总购买次数
         FROM vCleaned
         GROUP BY 1,2
 &quot;&quot;&quot;)
@@ -340,7 +342,7 @@ _.execute(&quot;&quot;&quot;
 _.close()</code></pre></details><details class="code"><summary>Python 代码</summary><pre><code class="language-python">#读取绘制图所需数据
 _ = duckdb.connect(db)
 df = _.execute(&quot;&quot;&quot;
-SELECT 
+SELECT
 小时,
 SUM(总浏览次数) AS 总浏览次数,
 SUM(总收藏次数) AS 总收藏次数,
@@ -348,7 +350,7 @@ SUM(总购物车次数) AS 总购物车次数,
 SUM(总购买次数) AS 总购买次数
 FROM Tmacro GROUP BY 小时&quot;&quot;&quot;).fetchdf()
 _.close()</code></pre></details><details class="code"><summary>Python 代码</summary><pre><code class="language-python">#按各图包含的行为，寻找总互动量最低、最高的连续3小时（允许跨午夜）
-hourly = df.set_index(&#x27;小时&#x27;).reindex(range(24)).fillna(0)
+hourly = df.set_index('小时').reindex(range(24)).fillna(0)
 
 def mark_hourly_periods(figure, columns):
     totals = hourly[columns].sum(axis=1).tolist()
@@ -358,8 +360,8 @@ def mark_hourly_periods(figure, columns):
     ]
     # 若多个区间并列，选择起始小时最早的区间
     periods = [
-        (min(range(24), key=lambda start: windows[start]), &#x27;低谷期&#x27;, &quot;#919191&quot;),
-        (max(range(24), key=lambda start: windows[start]), &#x27;高峰期&#x27;, &quot;#ff9cd8&quot;),
+        (min(range(24), key=lambda start: windows[start]), '低谷期', &quot;#919191&quot;),
+        (max(range(24), key=lambda start: windows[start]), '高峰期', &quot;#ff9cd8&quot;),
     ]
 
     for start, label, color in periods:
@@ -374,16 +376,16 @@ def mark_hourly_periods(figure, columns):
                 fillcolor=color,
                 opacity=0.8,
                 line_width=0,
-                layer=&#x27;below&#x27;,
+                layer='below',
                 annotation_text=label if segment_index == 0 else None,
-                annotation_position=&#x27;top left&#x27;,
-                annotation_font_color=&#x27;#555555&#x27;
+                annotation_position='top left',
+                annotation_font_color='#555555'
             )
 
-    figure.update_layout(plot_bgcolor=&#x27;white&#x27;, paper_bgcolor=&#x27;white&#x27;)
+    figure.update_layout(plot_bgcolor='white', paper_bgcolor='white')
     figure.update_xaxes(
         range=[-0.5, 23.5],
-        tickmode=&#x27;linear&#x27;,
+        tickmode='linear',
         tick0=0,
         dtick=1,
         showgrid=False,
@@ -393,10 +395,10 @@ def mark_hourly_periods(figure, columns):
 
 # 固定行为颜色；同一小时内的所有行为按互动总量使用相同的明度强度
 behavior_colors = {
-    &#x27;浏览次数&#x27;: &#x27;#3978d7&#x27;,
-    &#x27;收藏次数&#x27;: &#x27;#f4c95d&#x27;,
-    &#x27;购物车次数&#x27;: &#x27;#f28e2b&#x27;,
-    &#x27;购买次数&#x27;: &#x27;#d9485f&#x27;
+    '浏览次数': '#3978d7',
+    '收藏次数': '#f4c95d',
+    '购物车次数': '#f28e2b',
+    '购买次数': '#d9485f'
 }
 
 def get_hourly_colors(columns, base_color):
@@ -405,7 +407,7 @@ def get_hourly_colors(columns, base_color):
     intensity = (totals - totals.min()) / value_range if value_range else totals * 0 + 1
     alpha = 0.35 + intensity * 0.65
     red, green, blue = tuple(int(base_color[index:index + 2], 16) for index in (1, 3, 5))
-    return [f&#x27;rgba({red}, {green}, {blue}, {value:.3f})&#x27; for value in alpha]
+    return [f'rgba({red}, {green}, {blue}, {value:.3f})' for value in alpha]
 
 def build_hourly_bar(name, column, columns):
     return go.Bar(
@@ -414,47 +416,47 @@ def build_hourly_bar(name, column, columns):
         y=hourly[column],
         marker=dict(
             color=get_hourly_colors(columns, behavior_colors[name]),
-            line=dict(color=&#x27;rgba(255, 255, 255, 0.95)&#x27;, width=1.1)
+            line=dict(color='rgba(255, 255, 255, 0.95)', width=1.1)
         )
     )
 
 #按小时的互动直方图（包含浏览次数）
 n = hourly.index
-all_behavior_columns = [&#x27;总浏览次数&#x27;, &#x27;总收藏次数&#x27;, &#x27;总购物车次数&#x27;, &#x27;总购买次数&#x27;]
+all_behavior_columns = ['总浏览次数', '总收藏次数', '总购物车次数', '总购买次数']
 fig = go.Figure(data=[
-    build_hourly_bar(&#x27;浏览次数&#x27;, &#x27;总浏览次数&#x27;, all_behavior_columns),
-    build_hourly_bar(&#x27;收藏次数&#x27;, &#x27;总收藏次数&#x27;, all_behavior_columns),
-    build_hourly_bar(&#x27;购物车次数&#x27;, &#x27;总购物车次数&#x27;, all_behavior_columns),
-    build_hourly_bar(&#x27;购买次数&#x27;, &#x27;总购买次数&#x27;, all_behavior_columns)
+    build_hourly_bar('浏览次数', '总浏览次数', all_behavior_columns),
+    build_hourly_bar('收藏次数', '总收藏次数', all_behavior_columns),
+    build_hourly_bar('购物车次数', '总购物车次数', all_behavior_columns),
+    build_hourly_bar('购买次数', '总购买次数', all_behavior_columns)
 ])
 fig.update_layout(
-    barmode=&#x27;stack&#x27;,
-    title=&#x27;&lt;b&gt;按小时的互动直方图（包含浏览次数）&lt;/b&gt;&#x27;
+    barmode='stack',
+    title='&lt;b&gt;按小时的互动直方图（包含浏览次数）&lt;/b&gt;'
 )
 mark_hourly_periods(
     fig,
-    [&#x27;总浏览次数&#x27;, &#x27;总收藏次数&#x27;, &#x27;总购物车次数&#x27;, &#x27;总购买次数&#x27;]
+    ['总浏览次数', '总收藏次数', '总购物车次数', '总购买次数']
 )
 fig.show()
 
 #按小时的互动直方图（不包含浏览次数）
-intent_behavior_columns = [&#x27;总收藏次数&#x27;, &#x27;总购物车次数&#x27;, &#x27;总购买次数&#x27;]
+intent_behavior_columns = ['总收藏次数', '总购物车次数', '总购买次数']
 fig = go.Figure(data=[
-    build_hourly_bar(&#x27;收藏次数&#x27;, &#x27;总收藏次数&#x27;, intent_behavior_columns),
-    build_hourly_bar(&#x27;购物车次数&#x27;, &#x27;总购物车次数&#x27;, intent_behavior_columns),
-    build_hourly_bar(&#x27;购买次数&#x27;, &#x27;总购买次数&#x27;, intent_behavior_columns)
+    build_hourly_bar('收藏次数', '总收藏次数', intent_behavior_columns),
+    build_hourly_bar('购物车次数', '总购物车次数', intent_behavior_columns),
+    build_hourly_bar('购买次数', '总购买次数', intent_behavior_columns)
 ])
 fig.update_layout(
-    barmode=&#x27;stack&#x27;,
-    title=&#x27;&lt;b&gt;按小时的互动直方图（不包含浏览次数）&lt;/b&gt;&#x27;
+    barmode='stack',
+    title='&lt;b&gt;按小时的互动直方图（不包含浏览次数）&lt;/b&gt;'
 )
 mark_hourly_periods(
     fig,
-    [&#x27;总收藏次数&#x27;, &#x27;总购物车次数&#x27;, &#x27;总购买次数&#x27;]
+    ['总收藏次数', '总购物车次数', '总购买次数']
 )
-fig.show()</code></pre></details><section class="cell-output chart-output"><div style="height:525px; width:100%;">            <script>if (window.MathJax && window.MathJax.Hub && window.MathJax.Hub.Config) {window.MathJax.Hub.Config({SVG: {font: "STIX-Web"}});}</script>                    <div id="e3537655-6f3e-41e9-aa01-09d305abc04b" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("e3537655-6f3e-41e9-aa01-09d305abc04b")) {                    Plotly.newPlot(                        "e3537655-6f3e-41e9-aa01-09d305abc04b",                        [{"marker":{"color":["rgba(57, 120, 215, 0.590)","rgba(57, 120, 215, 0.439)","rgba(57, 120, 215, 0.379)","rgba(57, 120, 215, 0.357)","rgba(57, 120, 215, 0.350)","rgba(57, 120, 215, 0.362)","rgba(57, 120, 215, 0.422)","rgba(57, 120, 215, 0.514)","rgba(57, 120, 215, 0.590)","rgba(57, 120, 215, 0.654)","rgba(57, 120, 215, 0.711)","rgba(57, 120, 215, 0.700)","rgba(57, 120, 215, 0.703)","rgba(57, 120, 215, 0.739)","rgba(57, 120, 215, 0.737)","rgba(57, 120, 215, 0.752)","rgba(57, 120, 215, 0.734)","rgba(57, 120, 215, 0.697)","rgba(57, 120, 215, 0.705)","rgba(57, 120, 215, 0.806)","rgba(57, 120, 215, 0.912)","rgba(57, 120, 215, 1.000)","rgba(57, 120, 215, 0.994)","rgba(57, 120, 215, 0.828)"],"line":{"color":"rgba(255, 255, 255, 0.95)","width":1.1}},"name":"\u6d4f\u89c8\u6b21\u6570","x":{"dtype":"i1","bdata":"AAECAwQFBgcICQoLDA0ODxAREhMUFRYX"},"y":{"dtype":"f8","bdata":"AAAAgJNSR0EAAAAAabE1QQAAAADqeSdBAAAAAIAFIEEAAAAAcHEbQQAAAAB8wCFBAAAAAJ23MkEAAACAbwFBQQAAAAATNkdBAAAAADlyTEEAAACANolQQQAAAIDDElBBAAAAgAw8UEEAAABA28BRQQAAAIBBtVFBAAAAAAxWUkEAAADAv5NRQQAAAMDgCFBBAAAAAGt0UEEAAACAl7dUQQAAAMD2H1lBAAAAgLPBXEEAAABAn2RcQQAAAECnXFVB"},"type":"bar"},{"marker":{"color":["rgba(244, 201, 93, 0.590)","rgba(244, 201, 93, 0.439)","rgba(244, 201, 93, 0.379)","rgba(244, 201, 93, 0.357)","rgba(244, 201, 93, 0.350)","rgba(244, 201, 93, 0.362)","rgba(244, 201, 93, 0.422)","rgba(244, 201, 93, 0.514)","rgba(244, 201, 93, 0.590)","rgba(244, 201, 93, 0.654)","rgba(244, 201, 93, 0.711)","rgba(244, 201, 93, 0.700)","rgba(244, 201, 93, 0.703)","rgba(244, 201, 93, 0.739)","rgba(244, 201, 93, 0.737)","rgba(244, 201, 93, 0.752)","rgba(244, 201, 93, 0.734)","rgba(244, 201, 93, 0.697)","rgba(244, 201, 93, 0.705)","rgba(244, 201, 93, 0.806)","rgba(244, 201, 93, 0.912)","rgba(244, 201, 93, 1.000)","rgba(244, 201, 93, 0.994)","rgba(244, 201, 93, 0.828)"],"line":{"color":"rgba(255, 255, 255, 0.95)","width":1.1}},"name":"\u6536\u85cf\u6b21\u6570","x":{"dtype":"i1","bdata":"AAECAwQFBgcICQoLDA0ODxAREhMUFRYX"},"y":{"dtype":"f8","bdata":"AAAAAIBr+UAAAAAAwLjoQAAAAAAAmNpAAAAAAICT0UAAAAAAgF3MQAAAAADAPNJAAAAAAOB540AAAAAAkAjyQAAAAACw+fhAAAAAAADL\u002fkAAAAAAWMABQQAAAADYggFBAAAAALD4AEEAAAAA8CkCQQAAAAA44gFBAAAAAHgxAkEAAAAAAOcBQQAAAADQjwBBAAAAAPAOAEEAAAAAGGsDQQAAAACQFgdBAAAAAACNCkEAAAAAAAcMQQAAAACwjAdB"},"type":"bar"},{"marker":{"color":["rgba(242, 142, 43, 0.590)","rgba(242, 142, 43, 0.439)","rgba(242, 142, 43, 0.379)","rgba(242, 142, 43, 0.357)","rgba(242, 142, 43, 0.350)","rgba(242, 142, 43, 0.362)","rgba(242, 142, 43, 0.422)","rgba(242, 142, 43, 0.514)","rgba(242, 142, 43, 0.590)","rgba(242, 142, 43, 0.654)","rgba(242, 142, 43, 0.711)","rgba(242, 142, 43, 0.700)","rgba(242, 142, 43, 0.703)","rgba(242, 142, 43, 0.739)","rgba(242, 142, 43, 0.737)","rgba(242, 142, 43, 0.752)","rgba(242, 142, 43, 0.734)","rgba(242, 142, 43, 0.697)","rgba(242, 142, 43, 0.705)","rgba(242, 142, 43, 0.806)","rgba(242, 142, 43, 0.912)","rgba(242, 142, 43, 1.000)","rgba(242, 142, 43, 0.994)","rgba(242, 142, 43, 0.828)"],"line":{"color":"rgba(255, 255, 255, 0.95)","width":1.1}},"name":"\u8d2d\u7269\u8f66\u6b21\u6570","x":{"dtype":"i1","bdata":"AAECAwQFBgcICQoLDA0ODxAREhMUFRYX"},"y":{"dtype":"f8","bdata":"AAAAAHgEBkEAAAAAkKz0QAAAAACAUOZAAAAAAAB430AAAAAAwJzbQAAAAACA\u002fuFAAAAAAFCx80AAAAAAeNEBQQAAAACoQwdBAAAAAGDYC0EAAAAA7CoQQQAAAAA4lg9BAAAAAKj8DkEAAAAAGPIQQQAAAABIxxBBAAAAALA4EUEAAAAAjOUQQQAAAAB47A5BAAAAADiwDkEAAAAAXBETQQAAAADY0RdBAAAAABQ9HEEAAAAAxHYdQQAAAABg\u002fRdB"},"type":"bar"},{"marker":{"color":["rgba(217, 72, 95, 0.590)","rgba(217, 72, 95, 0.439)","rgba(217, 72, 95, 0.379)","rgba(217, 72, 95, 0.357)","rgba(217, 72, 95, 0.350)","rgba(217, 72, 95, 0.362)","rgba(217, 72, 95, 0.422)","rgba(217, 72, 95, 0.514)","rgba(217, 72, 95, 0.590)","rgba(217, 72, 95, 0.654)","rgba(217, 72, 95, 0.711)","rgba(217, 72, 95, 0.700)","rgba(217, 72, 95, 0.703)","rgba(217, 72, 95, 0.739)","rgba(217, 72, 95, 0.737)","rgba(217, 72, 95, 0.752)","rgba(217, 72, 95, 0.734)","rgba(217, 72, 95, 0.697)","rgba(217, 72, 95, 0.705)","rgba(217, 72, 95, 0.806)","rgba(217, 72, 95, 0.912)","rgba(217, 72, 95, 1.000)","rgba(217, 72, 95, 0.994)","rgba(217, 72, 95, 0.828)"],"line":{"color":"rgba(255, 255, 255, 0.95)","width":1.1}},"name":"\u8d2d\u4e70\u6b21\u6570","x":{"dtype":"i1","bdata":"AAECAwQFBgcICQoLDA0ODxAREhMUFRYX"},"y":{"dtype":"f8","bdata":"AAAAAIAA7EAAAAAAgHnWQAAAAAAAUcdAAAAAAAAzv0AAAAAAAD26QAAAAAAAq79AAAAAAAB90UAAAAAAYEviQAAAAABAeu9AAAAAAEBQ90AAAAAA8P\u002f+QAAAAADwjf1AAAAAAEC+\u002fEAAAAAAgOX9QAAAAADwlP1AAAAAAKC+\u002fUAAAAAAQDn8QAAAAACwjvhAAAAAAHA\u002f90AAAAAAQOb7QAAAAABAOQBBAAAAAKikAUEAAAAAaMcAQQAAAABgRvhA"},"type":"bar"}],                        {"template":{"layout":{"paper_bgcolor":"white","plot_bgcolor":"white","xaxis":{"showgrid":false,"zeroline":false},"yaxis":{"showgrid":false,"zeroline":false}}},"barmode":"stack","title":{"text":"\u003cb\u003e\u6309\u5c0f\u65f6\u7684\u4e92\u52a8\u76f4\u65b9\u56fe\uff08\u5305\u542b\u6d4f\u89c8\u6b21\u6570\uff09\u003c\u002fb\u003e"},"shapes":[{"fillcolor":"#919191","layer":"below","line":{"width":0},"opacity":0.8,"type":"rect","x0":2.5,"x1":5.5,"xref":"x","y0":0,"y1":1,"yref":"y domain"},{"fillcolor":"#ff9cd8","layer":"below","line":{"width":0},"opacity":0.8,"type":"rect","x0":19.5,"x1":22.5,"xref":"x","y0":0,"y1":1,"yref":"y domain"}],"annotations":[{"font":{"color":"#555555"},"showarrow":false,"text":"\u4f4e\u8c37\u671f","x":2.5,"xanchor":"left","xref":"x","y":1,"yanchor":"top","yref":"y domain"},{"font":{"color":"#555555"},"showarrow":false,"text":"\u9ad8\u5cf0\u671f","x":19.5,"xanchor":"left","xref":"x","y":1,"yanchor":"top","yref":"y domain"}],"plot_bgcolor":"white","paper_bgcolor":"white","xaxis":{"range":[-0.5,23.5],"tickmode":"linear","tick0":0,"dtick":1,"showgrid":false,"zeroline":false},"yaxis":{"showgrid":false,"zeroline":false}},                        {"responsive": true}                    ).then(function(){
-                            
-var gd = document.getElementById('e3537655-6f3e-41e9-aa01-09d305abc04b');
+fig.show()</code></pre></details><section class="cell-output chart-output"><div style="height:525px; width:100%;">                                <div id="39676392-4042-4f74-b144-50b1fd3d898c" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("39676392-4042-4f74-b144-50b1fd3d898c")) {                    Plotly.newPlot(                        "39676392-4042-4f74-b144-50b1fd3d898c",                        [{"marker":{"color":["rgba(57, 120, 215, 0.590)","rgba(57, 120, 215, 0.439)","rgba(57, 120, 215, 0.379)","rgba(57, 120, 215, 0.357)","rgba(57, 120, 215, 0.350)","rgba(57, 120, 215, 0.362)","rgba(57, 120, 215, 0.422)","rgba(57, 120, 215, 0.514)","rgba(57, 120, 215, 0.590)","rgba(57, 120, 215, 0.654)","rgba(57, 120, 215, 0.711)","rgba(57, 120, 215, 0.700)","rgba(57, 120, 215, 0.703)","rgba(57, 120, 215, 0.739)","rgba(57, 120, 215, 0.737)","rgba(57, 120, 215, 0.752)","rgba(57, 120, 215, 0.734)","rgba(57, 120, 215, 0.697)","rgba(57, 120, 215, 0.705)","rgba(57, 120, 215, 0.806)","rgba(57, 120, 215, 0.912)","rgba(57, 120, 215, 1.000)","rgba(57, 120, 215, 0.994)","rgba(57, 120, 215, 0.828)"],"line":{"color":"rgba(255, 255, 255, 0.95)","width":1.1}},"name":"\u6d4f\u89c8\u6b21\u6570","x":{"dtype":"i1","bdata":"AAECAwQFBgcICQoLDA0ODxAREhMUFRYX"},"y":{"dtype":"f8","bdata":"AAAAgJNSR0EAAAAAabE1QQAAAADqeSdBAAAAAIAFIEEAAAAAcHEbQQAAAAB8wCFBAAAAAJ23MkEAAACAbwFBQQAAAAATNkdBAAAAADlyTEEAAACANolQQQAAAIDDElBBAAAAgAw8UEEAAABA28BRQQAAAIBBtVFBAAAAAAxWUkEAAADAv5NRQQAAAMDgCFBBAAAAAGt0UEEAAACAl7dUQQAAAMD2H1lBAAAAgLPBXEEAAABAn2RcQQAAAECnXFVB"},"type":"bar"},{"marker":{"color":["rgba(244, 201, 93, 0.590)","rgba(244, 201, 93, 0.439)","rgba(244, 201, 93, 0.379)","rgba(244, 201, 93, 0.357)","rgba(244, 201, 93, 0.350)","rgba(244, 201, 93, 0.362)","rgba(244, 201, 93, 0.422)","rgba(244, 201, 93, 0.514)","rgba(244, 201, 93, 0.590)","rgba(244, 201, 93, 0.654)","rgba(244, 201, 93, 0.711)","rgba(244, 201, 93, 0.700)","rgba(244, 201, 93, 0.703)","rgba(244, 201, 93, 0.739)","rgba(244, 201, 93, 0.737)","rgba(244, 201, 93, 0.752)","rgba(244, 201, 93, 0.734)","rgba(244, 201, 93, 0.697)","rgba(244, 201, 93, 0.705)","rgba(244, 201, 93, 0.806)","rgba(244, 201, 93, 0.912)","rgba(244, 201, 93, 1.000)","rgba(244, 201, 93, 0.994)","rgba(244, 201, 93, 0.828)"],"line":{"color":"rgba(255, 255, 255, 0.95)","width":1.1}},"name":"\u6536\u85cf\u6b21\u6570","x":{"dtype":"i1","bdata":"AAECAwQFBgcICQoLDA0ODxAREhMUFRYX"},"y":{"dtype":"f8","bdata":"AAAAAIBr+UAAAAAAwLjoQAAAAAAAmNpAAAAAAICT0UAAAAAAgF3MQAAAAADAPNJAAAAAAOB540AAAAAAkAjyQAAAAACw+fhAAAAAAADL\u002fkAAAAAAWMABQQAAAADYggFBAAAAALD4AEEAAAAA8CkCQQAAAAA44gFBAAAAAHgxAkEAAAAAAOcBQQAAAADQjwBBAAAAAPAOAEEAAAAAGGsDQQAAAACQFgdBAAAAAACNCkEAAAAAAAcMQQAAAACwjAdB"},"type":"bar"},{"marker":{"color":["rgba(242, 142, 43, 0.590)","rgba(242, 142, 43, 0.439)","rgba(242, 142, 43, 0.379)","rgba(242, 142, 43, 0.357)","rgba(242, 142, 43, 0.350)","rgba(242, 142, 43, 0.362)","rgba(242, 142, 43, 0.422)","rgba(242, 142, 43, 0.514)","rgba(242, 142, 43, 0.590)","rgba(242, 142, 43, 0.654)","rgba(242, 142, 43, 0.711)","rgba(242, 142, 43, 0.700)","rgba(242, 142, 43, 0.703)","rgba(242, 142, 43, 0.739)","rgba(242, 142, 43, 0.737)","rgba(242, 142, 43, 0.752)","rgba(242, 142, 43, 0.734)","rgba(242, 142, 43, 0.697)","rgba(242, 142, 43, 0.705)","rgba(242, 142, 43, 0.806)","rgba(242, 142, 43, 0.912)","rgba(242, 142, 43, 1.000)","rgba(242, 142, 43, 0.994)","rgba(242, 142, 43, 0.828)"],"line":{"color":"rgba(255, 255, 255, 0.95)","width":1.1}},"name":"\u8d2d\u7269\u8f66\u6b21\u6570","x":{"dtype":"i1","bdata":"AAECAwQFBgcICQoLDA0ODxAREhMUFRYX"},"y":{"dtype":"f8","bdata":"AAAAAHgEBkEAAAAAkKz0QAAAAACAUOZAAAAAAAB430AAAAAAwJzbQAAAAACA\u002fuFAAAAAAFCx80AAAAAAeNEBQQAAAACoQwdBAAAAAGDYC0EAAAAA7CoQQQAAAAA4lg9BAAAAAKj8DkEAAAAAGPIQQQAAAABIxxBBAAAAALA4EUEAAAAAjOUQQQAAAAB47A5BAAAAADiwDkEAAAAAXBETQQAAAADY0RdBAAAAABQ9HEEAAAAAxHYdQQAAAABg\u002fRdB"},"type":"bar"},{"marker":{"color":["rgba(217, 72, 95, 0.590)","rgba(217, 72, 95, 0.439)","rgba(217, 72, 95, 0.379)","rgba(217, 72, 95, 0.357)","rgba(217, 72, 95, 0.350)","rgba(217, 72, 95, 0.362)","rgba(217, 72, 95, 0.422)","rgba(217, 72, 95, 0.514)","rgba(217, 72, 95, 0.590)","rgba(217, 72, 95, 0.654)","rgba(217, 72, 95, 0.711)","rgba(217, 72, 95, 0.700)","rgba(217, 72, 95, 0.703)","rgba(217, 72, 95, 0.739)","rgba(217, 72, 95, 0.737)","rgba(217, 72, 95, 0.752)","rgba(217, 72, 95, 0.734)","rgba(217, 72, 95, 0.697)","rgba(217, 72, 95, 0.705)","rgba(217, 72, 95, 0.806)","rgba(217, 72, 95, 0.912)","rgba(217, 72, 95, 1.000)","rgba(217, 72, 95, 0.994)","rgba(217, 72, 95, 0.828)"],"line":{"color":"rgba(255, 255, 255, 0.95)","width":1.1}},"name":"\u8d2d\u4e70\u6b21\u6570","x":{"dtype":"i1","bdata":"AAECAwQFBgcICQoLDA0ODxAREhMUFRYX"},"y":{"dtype":"f8","bdata":"AAAAAIAA7EAAAAAAgHnWQAAAAAAAUcdAAAAAAAAzv0AAAAAAAD26QAAAAAAAq79AAAAAAAB90UAAAAAAYEviQAAAAABAeu9AAAAAAEBQ90AAAAAA8P\u002f+QAAAAADwjf1AAAAAAEC+\u002fEAAAAAAgOX9QAAAAADwlP1AAAAAAKC+\u002fUAAAAAAQDn8QAAAAACwjvhAAAAAAHA\u002f90AAAAAAQOb7QAAAAABAOQBBAAAAAKikAUEAAAAAaMcAQQAAAABgRvhA"},"type":"bar"}],                        {"template":{"layout":{"paper_bgcolor":"white","plot_bgcolor":"white","xaxis":{"showgrid":false,"zeroline":false},"yaxis":{"showgrid":false,"zeroline":false}}},"barmode":"stack","title":{"text":"\u003cb\u003e\u6309\u5c0f\u65f6\u7684\u4e92\u52a8\u76f4\u65b9\u56fe\uff08\u5305\u542b\u6d4f\u89c8\u6b21\u6570\uff09\u003c\u002fb\u003e"},"shapes":[{"fillcolor":"#919191","layer":"below","line":{"width":0},"opacity":0.8,"type":"rect","x0":2.5,"x1":5.5,"xref":"x","y0":0,"y1":1,"yref":"y domain"},{"fillcolor":"#ff9cd8","layer":"below","line":{"width":0},"opacity":0.8,"type":"rect","x0":19.5,"x1":22.5,"xref":"x","y0":0,"y1":1,"yref":"y domain"}],"annotations":[{"font":{"color":"#555555"},"showarrow":false,"text":"\u4f4e\u8c37\u671f","x":2.5,"xanchor":"left","xref":"x","y":1,"yanchor":"top","yref":"y domain"},{"font":{"color":"#555555"},"showarrow":false,"text":"\u9ad8\u5cf0\u671f","x":19.5,"xanchor":"left","xref":"x","y":1,"yanchor":"top","yref":"y domain"}],"plot_bgcolor":"white","paper_bgcolor":"white","xaxis":{"range":[-0.5,23.5],"tickmode":"linear","tick0":0,"dtick":1,"showgrid":false,"zeroline":false},"yaxis":{"showgrid":false,"zeroline":false}},                        {"responsive": true}                    ).then(function(){
+
+var gd = document.getElementById('39676392-4042-4f74-b144-50b1fd3d898c');
 var x = new MutationObserver(function (mutations, observer) {{
         var display = window.getComputedStyle(gd).display;
         if (!display || display === 'none') {{
@@ -476,9 +478,9 @@ if (outputEl) {{
     x.observe(outputEl, {childList: true});
 }}
 
-                        })                };            </script>        </div></section><section class="cell-output chart-output"><div style="height:525px; width:100%;">            <script>if (window.MathJax && window.MathJax.Hub && window.MathJax.Hub.Config) {window.MathJax.Hub.Config({SVG: {font: "STIX-Web"}});}</script>                    <div id="620f5afc-51a8-44b3-a9df-8d0c9fb74725" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("620f5afc-51a8-44b3-a9df-8d0c9fb74725")) {                    Plotly.newPlot(                        "620f5afc-51a8-44b3-a9df-8d0c9fb74725",                        [{"marker":{"color":["rgba(244, 201, 93, 0.587)","rgba(244, 201, 93, 0.438)","rgba(244, 201, 93, 0.379)","rgba(244, 201, 93, 0.357)","rgba(244, 201, 93, 0.350)","rgba(244, 201, 93, 0.361)","rgba(244, 201, 93, 0.422)","rgba(244, 201, 93, 0.519)","rgba(244, 201, 93, 0.600)","rgba(244, 201, 93, 0.675)","rgba(244, 201, 93, 0.746)","rgba(244, 201, 93, 0.735)","rgba(244, 201, 93, 0.725)","rgba(244, 201, 93, 0.756)","rgba(244, 201, 93, 0.750)","rgba(244, 201, 93, 0.759)","rgba(244, 201, 93, 0.748)","rgba(244, 201, 93, 0.707)","rgba(244, 201, 93, 0.698)","rgba(244, 201, 93, 0.786)","rgba(244, 201, 93, 0.888)","rgba(244, 201, 93, 0.980)","rgba(244, 201, 93, 1.000)","rgba(244, 201, 93, 0.866)"],"line":{"color":"rgba(255, 255, 255, 0.95)","width":1.1}},"name":"\u6536\u85cf\u6b21\u6570","x":{"dtype":"i1","bdata":"AAECAwQFBgcICQoLDA0ODxAREhMUFRYX"},"y":{"dtype":"f8","bdata":"AAAAAIBr+UAAAAAAwLjoQAAAAAAAmNpAAAAAAICT0UAAAAAAgF3MQAAAAADAPNJAAAAAAOB540AAAAAAkAjyQAAAAACw+fhAAAAAAADL\u002fkAAAAAAWMABQQAAAADYggFBAAAAALD4AEEAAAAA8CkCQQAAAAA44gFBAAAAAHgxAkEAAAAAAOcBQQAAAADQjwBBAAAAAPAOAEEAAAAAGGsDQQAAAACQFgdBAAAAAACNCkEAAAAAAAcMQQAAAACwjAdB"},"type":"bar"},{"marker":{"color":["rgba(242, 142, 43, 0.587)","rgba(242, 142, 43, 0.438)","rgba(242, 142, 43, 0.379)","rgba(242, 142, 43, 0.357)","rgba(242, 142, 43, 0.350)","rgba(242, 142, 43, 0.361)","rgba(242, 142, 43, 0.422)","rgba(242, 142, 43, 0.519)","rgba(242, 142, 43, 0.600)","rgba(242, 142, 43, 0.675)","rgba(242, 142, 43, 0.746)","rgba(242, 142, 43, 0.735)","rgba(242, 142, 43, 0.725)","rgba(242, 142, 43, 0.756)","rgba(242, 142, 43, 0.750)","rgba(242, 142, 43, 0.759)","rgba(242, 142, 43, 0.748)","rgba(242, 142, 43, 0.707)","rgba(242, 142, 43, 0.698)","rgba(242, 142, 43, 0.786)","rgba(242, 142, 43, 0.888)","rgba(242, 142, 43, 0.980)","rgba(242, 142, 43, 1.000)","rgba(242, 142, 43, 0.866)"],"line":{"color":"rgba(255, 255, 255, 0.95)","width":1.1}},"name":"\u8d2d\u7269\u8f66\u6b21\u6570","x":{"dtype":"i1","bdata":"AAECAwQFBgcICQoLDA0ODxAREhMUFRYX"},"y":{"dtype":"f8","bdata":"AAAAAHgEBkEAAAAAkKz0QAAAAACAUOZAAAAAAAB430AAAAAAwJzbQAAAAACA\u002fuFAAAAAAFCx80AAAAAAeNEBQQAAAACoQwdBAAAAAGDYC0EAAAAA7CoQQQAAAAA4lg9BAAAAAKj8DkEAAAAAGPIQQQAAAABIxxBBAAAAALA4EUEAAAAAjOUQQQAAAAB47A5BAAAAADiwDkEAAAAAXBETQQAAAADY0RdBAAAAABQ9HEEAAAAAxHYdQQAAAABg\u002fRdB"},"type":"bar"},{"marker":{"color":["rgba(217, 72, 95, 0.587)","rgba(217, 72, 95, 0.438)","rgba(217, 72, 95, 0.379)","rgba(217, 72, 95, 0.357)","rgba(217, 72, 95, 0.350)","rgba(217, 72, 95, 0.361)","rgba(217, 72, 95, 0.422)","rgba(217, 72, 95, 0.519)","rgba(217, 72, 95, 0.600)","rgba(217, 72, 95, 0.675)","rgba(217, 72, 95, 0.746)","rgba(217, 72, 95, 0.735)","rgba(217, 72, 95, 0.725)","rgba(217, 72, 95, 0.756)","rgba(217, 72, 95, 0.750)","rgba(217, 72, 95, 0.759)","rgba(217, 72, 95, 0.748)","rgba(217, 72, 95, 0.707)","rgba(217, 72, 95, 0.698)","rgba(217, 72, 95, 0.786)","rgba(217, 72, 95, 0.888)","rgba(217, 72, 95, 0.980)","rgba(217, 72, 95, 1.000)","rgba(217, 72, 95, 0.866)"],"line":{"color":"rgba(255, 255, 255, 0.95)","width":1.1}},"name":"\u8d2d\u4e70\u6b21\u6570","x":{"dtype":"i1","bdata":"AAECAwQFBgcICQoLDA0ODxAREhMUFRYX"},"y":{"dtype":"f8","bdata":"AAAAAIAA7EAAAAAAgHnWQAAAAAAAUcdAAAAAAAAzv0AAAAAAAD26QAAAAAAAq79AAAAAAAB90UAAAAAAYEviQAAAAABAeu9AAAAAAEBQ90AAAAAA8P\u002f+QAAAAADwjf1AAAAAAEC+\u002fEAAAAAAgOX9QAAAAADwlP1AAAAAAKC+\u002fUAAAAAAQDn8QAAAAACwjvhAAAAAAHA\u002f90AAAAAAQOb7QAAAAABAOQBBAAAAAKikAUEAAAAAaMcAQQAAAABgRvhA"},"type":"bar"}],                        {"template":{"layout":{"paper_bgcolor":"white","plot_bgcolor":"white","xaxis":{"showgrid":false,"zeroline":false},"yaxis":{"showgrid":false,"zeroline":false}}},"barmode":"stack","title":{"text":"\u003cb\u003e\u6309\u5c0f\u65f6\u7684\u4e92\u52a8\u76f4\u65b9\u56fe\uff08\u4e0d\u5305\u542b\u6d4f\u89c8\u6b21\u6570\uff09\u003c\u002fb\u003e"},"shapes":[{"fillcolor":"#919191","layer":"below","line":{"width":0},"opacity":0.8,"type":"rect","x0":2.5,"x1":5.5,"xref":"x","y0":0,"y1":1,"yref":"y domain"},{"fillcolor":"#ff9cd8","layer":"below","line":{"width":0},"opacity":0.8,"type":"rect","x0":19.5,"x1":22.5,"xref":"x","y0":0,"y1":1,"yref":"y domain"}],"annotations":[{"font":{"color":"#555555"},"showarrow":false,"text":"\u4f4e\u8c37\u671f","x":2.5,"xanchor":"left","xref":"x","y":1,"yanchor":"top","yref":"y domain"},{"font":{"color":"#555555"},"showarrow":false,"text":"\u9ad8\u5cf0\u671f","x":19.5,"xanchor":"left","xref":"x","y":1,"yanchor":"top","yref":"y domain"}],"plot_bgcolor":"white","paper_bgcolor":"white","xaxis":{"range":[-0.5,23.5],"tickmode":"linear","tick0":0,"dtick":1,"showgrid":false,"zeroline":false},"yaxis":{"showgrid":false,"zeroline":false}},                        {"responsive": true}                    ).then(function(){
-                            
-var gd = document.getElementById('620f5afc-51a8-44b3-a9df-8d0c9fb74725');
+                        })                };            </script>        </div></section><section class="cell-output chart-output"><div style="height:525px; width:100%;">                                <div id="b9db5925-27b1-4c2d-9464-9e165031adc3" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("b9db5925-27b1-4c2d-9464-9e165031adc3")) {                    Plotly.newPlot(                        "b9db5925-27b1-4c2d-9464-9e165031adc3",                        [{"marker":{"color":["rgba(244, 201, 93, 0.587)","rgba(244, 201, 93, 0.438)","rgba(244, 201, 93, 0.379)","rgba(244, 201, 93, 0.357)","rgba(244, 201, 93, 0.350)","rgba(244, 201, 93, 0.361)","rgba(244, 201, 93, 0.422)","rgba(244, 201, 93, 0.519)","rgba(244, 201, 93, 0.600)","rgba(244, 201, 93, 0.675)","rgba(244, 201, 93, 0.746)","rgba(244, 201, 93, 0.735)","rgba(244, 201, 93, 0.725)","rgba(244, 201, 93, 0.756)","rgba(244, 201, 93, 0.750)","rgba(244, 201, 93, 0.759)","rgba(244, 201, 93, 0.748)","rgba(244, 201, 93, 0.707)","rgba(244, 201, 93, 0.698)","rgba(244, 201, 93, 0.786)","rgba(244, 201, 93, 0.888)","rgba(244, 201, 93, 0.980)","rgba(244, 201, 93, 1.000)","rgba(244, 201, 93, 0.866)"],"line":{"color":"rgba(255, 255, 255, 0.95)","width":1.1}},"name":"\u6536\u85cf\u6b21\u6570","x":{"dtype":"i1","bdata":"AAECAwQFBgcICQoLDA0ODxAREhMUFRYX"},"y":{"dtype":"f8","bdata":"AAAAAIBr+UAAAAAAwLjoQAAAAAAAmNpAAAAAAICT0UAAAAAAgF3MQAAAAADAPNJAAAAAAOB540AAAAAAkAjyQAAAAACw+fhAAAAAAADL\u002fkAAAAAAWMABQQAAAADYggFBAAAAALD4AEEAAAAA8CkCQQAAAAA44gFBAAAAAHgxAkEAAAAAAOcBQQAAAADQjwBBAAAAAPAOAEEAAAAAGGsDQQAAAACQFgdBAAAAAACNCkEAAAAAAAcMQQAAAACwjAdB"},"type":"bar"},{"marker":{"color":["rgba(242, 142, 43, 0.587)","rgba(242, 142, 43, 0.438)","rgba(242, 142, 43, 0.379)","rgba(242, 142, 43, 0.357)","rgba(242, 142, 43, 0.350)","rgba(242, 142, 43, 0.361)","rgba(242, 142, 43, 0.422)","rgba(242, 142, 43, 0.519)","rgba(242, 142, 43, 0.600)","rgba(242, 142, 43, 0.675)","rgba(242, 142, 43, 0.746)","rgba(242, 142, 43, 0.735)","rgba(242, 142, 43, 0.725)","rgba(242, 142, 43, 0.756)","rgba(242, 142, 43, 0.750)","rgba(242, 142, 43, 0.759)","rgba(242, 142, 43, 0.748)","rgba(242, 142, 43, 0.707)","rgba(242, 142, 43, 0.698)","rgba(242, 142, 43, 0.786)","rgba(242, 142, 43, 0.888)","rgba(242, 142, 43, 0.980)","rgba(242, 142, 43, 1.000)","rgba(242, 142, 43, 0.866)"],"line":{"color":"rgba(255, 255, 255, 0.95)","width":1.1}},"name":"\u8d2d\u7269\u8f66\u6b21\u6570","x":{"dtype":"i1","bdata":"AAECAwQFBgcICQoLDA0ODxAREhMUFRYX"},"y":{"dtype":"f8","bdata":"AAAAAHgEBkEAAAAAkKz0QAAAAACAUOZAAAAAAAB430AAAAAAwJzbQAAAAACA\u002fuFAAAAAAFCx80AAAAAAeNEBQQAAAACoQwdBAAAAAGDYC0EAAAAA7CoQQQAAAAA4lg9BAAAAAKj8DkEAAAAAGPIQQQAAAABIxxBBAAAAALA4EUEAAAAAjOUQQQAAAAB47A5BAAAAADiwDkEAAAAAXBETQQAAAADY0RdBAAAAABQ9HEEAAAAAxHYdQQAAAABg\u002fRdB"},"type":"bar"},{"marker":{"color":["rgba(217, 72, 95, 0.587)","rgba(217, 72, 95, 0.438)","rgba(217, 72, 95, 0.379)","rgba(217, 72, 95, 0.357)","rgba(217, 72, 95, 0.350)","rgba(217, 72, 95, 0.361)","rgba(217, 72, 95, 0.422)","rgba(217, 72, 95, 0.519)","rgba(217, 72, 95, 0.600)","rgba(217, 72, 95, 0.675)","rgba(217, 72, 95, 0.746)","rgba(217, 72, 95, 0.735)","rgba(217, 72, 95, 0.725)","rgba(217, 72, 95, 0.756)","rgba(217, 72, 95, 0.750)","rgba(217, 72, 95, 0.759)","rgba(217, 72, 95, 0.748)","rgba(217, 72, 95, 0.707)","rgba(217, 72, 95, 0.698)","rgba(217, 72, 95, 0.786)","rgba(217, 72, 95, 0.888)","rgba(217, 72, 95, 0.980)","rgba(217, 72, 95, 1.000)","rgba(217, 72, 95, 0.866)"],"line":{"color":"rgba(255, 255, 255, 0.95)","width":1.1}},"name":"\u8d2d\u4e70\u6b21\u6570","x":{"dtype":"i1","bdata":"AAECAwQFBgcICQoLDA0ODxAREhMUFRYX"},"y":{"dtype":"f8","bdata":"AAAAAIAA7EAAAAAAgHnWQAAAAAAAUcdAAAAAAAAzv0AAAAAAAD26QAAAAAAAq79AAAAAAAB90UAAAAAAYEviQAAAAABAeu9AAAAAAEBQ90AAAAAA8P\u002f+QAAAAADwjf1AAAAAAEC+\u002fEAAAAAAgOX9QAAAAADwlP1AAAAAAKC+\u002fUAAAAAAQDn8QAAAAACwjvhAAAAAAHA\u002f90AAAAAAQOb7QAAAAABAOQBBAAAAAKikAUEAAAAAaMcAQQAAAABgRvhA"},"type":"bar"}],                        {"template":{"layout":{"paper_bgcolor":"white","plot_bgcolor":"white","xaxis":{"showgrid":false,"zeroline":false},"yaxis":{"showgrid":false,"zeroline":false}}},"barmode":"stack","title":{"text":"\u003cb\u003e\u6309\u5c0f\u65f6\u7684\u4e92\u52a8\u76f4\u65b9\u56fe\uff08\u4e0d\u5305\u542b\u6d4f\u89c8\u6b21\u6570\uff09\u003c\u002fb\u003e"},"shapes":[{"fillcolor":"#919191","layer":"below","line":{"width":0},"opacity":0.8,"type":"rect","x0":2.5,"x1":5.5,"xref":"x","y0":0,"y1":1,"yref":"y domain"},{"fillcolor":"#ff9cd8","layer":"below","line":{"width":0},"opacity":0.8,"type":"rect","x0":19.5,"x1":22.5,"xref":"x","y0":0,"y1":1,"yref":"y domain"}],"annotations":[{"font":{"color":"#555555"},"showarrow":false,"text":"\u4f4e\u8c37\u671f","x":2.5,"xanchor":"left","xref":"x","y":1,"yanchor":"top","yref":"y domain"},{"font":{"color":"#555555"},"showarrow":false,"text":"\u9ad8\u5cf0\u671f","x":19.5,"xanchor":"left","xref":"x","y":1,"yanchor":"top","yref":"y domain"}],"plot_bgcolor":"white","paper_bgcolor":"white","xaxis":{"range":[-0.5,23.5],"tickmode":"linear","tick0":0,"dtick":1,"showgrid":false,"zeroline":false},"yaxis":{"showgrid":false,"zeroline":false}},                        {"responsive": true}                    ).then(function(){
+
+var gd = document.getElementById('b9db5925-27b1-4c2d-9464-9e165031adc3');
 var x = new MutationObserver(function (mutations, observer) {{
         var display = window.getComputedStyle(gd).display;
         if (!display || display === 'none') {{
@@ -503,7 +505,7 @@ if (outputEl) {{
                         })                };            </script>        </div></section><details class="code"><summary>Python 代码</summary><pre><code class="language-python">
 _ = duckdb.connect(db)
 df = _.execute(&quot;&quot;&quot;
-SELECT 
+SELECT
 小时,
 SUM(总浏览次数) AS 总浏览次数,
 SUM(总购买次数) AS 总购买次数,
@@ -514,16 +516,16 @@ ORDER BY 小时
 &quot;&quot;&quot;).fetchdf()
 _.close()
 </code></pre></details><details class="code"><summary>Python 代码</summary><pre><code class="language-python"># 参考线使用总体加权行为次数比
-n = df[&#x27;小时&#x27;]
+n = df['小时']
 fig = go.Figure(data=[
     go.Bar(
-        name=&#x27;浏览转购买行为次数比&#x27;,
+        name='浏览转购买行为次数比',
         x=n,
-        y=df[&#x27;浏览转购买率&#x27;],
-        marker=dict(color=df[&#x27;浏览转购买率&#x27;], coloraxis=&quot;coloraxis&quot;)
+        y=df['浏览转购买率'],
+        marker=dict(color=df['浏览转购买率'], coloraxis=&quot;coloraxis&quot;)
     ),
 ])
-mean_val = df[&#x27;总购买次数&#x27;].sum() * 100.0 / df[&#x27;总浏览次数&#x27;].sum()
+mean_val = df['总购买次数'].sum() * 100.0 / df['总浏览次数'].sum()
 
 fig.add_hline(
     y=mean_val,
@@ -534,16 +536,16 @@ fig.add_hline(
 )
 
 fig.update_layout(
-    title=&#x27;&lt;b&gt;按小时的浏览与购买行为次数比&lt;/b&gt;&#x27;,
-    plot_bgcolor=&#x27;white&#x27;,
-    paper_bgcolor=&#x27;white&#x27;,
+    title='&lt;b&gt;按小时的浏览与购买行为次数比&lt;/b&gt;',
+    plot_bgcolor='white',
+    paper_bgcolor='white',
     yaxis=dict(range=[0, 5])
 )
 fig.update_xaxes(showgrid=False, zeroline=False)
 fig.update_yaxes(showgrid=False, zeroline=False)
-fig.show()</code></pre></details><section class="cell-output chart-output"><div style="height:525px; width:100%;">            <script>if (window.MathJax && window.MathJax.Hub && window.MathJax.Hub.Config) {window.MathJax.Hub.Config({SVG: {font: "STIX-Web"}});}</script>                    <div id="25a0598a-f201-419e-a431-e78ae8e9403e" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("25a0598a-f201-419e-a431-e78ae8e9403e")) {                    Plotly.newPlot(                        "25a0598a-f201-419e-a431-e78ae8e9403e",                        [{"marker":{"color":{"dtype":"f8","bdata":"MVMRIBUE\u002fj+VxT+xl+b5P7tmzilu1Pg\u002fYigW7nlX+D9erARkBef3P6e7CuKLTPY\u002fGGArCshb9z9TdHeKC+X6P4KfnSCh8wBAIu+pNjZ9BECRDMtU\u002fW4HQIi6iDzv+wZAciw8z5IhBkCiVKLnxQwFQHjSh72x4QRA56xNJQBHBEA7gSL8PRIEQPfiQinaJANA6CKRsw+pAUC581+lYdUAQLFDVDucJABAUes8Oj2t\u002fj\u002fBANBJL4z9P\u002focKQ25aPw\u002f"},"coloraxis":"coloraxis"},"name":"\u6d4f\u89c8\u8f6c\u8d2d\u4e70\u884c\u4e3a\u6b21\u6570\u6bd4","x":{"dtype":"i1","bdata":"AAECAwQFBgcICQoLDA0ODxAREhMUFRYX"},"y":{"dtype":"f8","bdata":"MVMRIBUE\u002fj+VxT+xl+b5P7tmzilu1Pg\u002fYigW7nlX+D9erARkBef3P6e7CuKLTPY\u002fGGArCshb9z9TdHeKC+X6P4KfnSCh8wBAIu+pNjZ9BECRDMtU\u002fW4HQIi6iDzv+wZAciw8z5IhBkCiVKLnxQwFQHjSh72x4QRA56xNJQBHBEA7gSL8PRIEQPfiQinaJANA6CKRsw+pAUC581+lYdUAQLFDVDucJABAUes8Oj2t\u002fj\u002fBANBJL4z9P\u002focKQ25aPw\u002f"},"type":"bar"}],                        {"template":{"layout":{"paper_bgcolor":"white","plot_bgcolor":"white","xaxis":{"showgrid":false,"zeroline":false},"yaxis":{"showgrid":false,"zeroline":false}}},"shapes":[{"line":{"color":"grey","dash":"dash"},"type":"line","x0":0,"x1":1,"xref":"x domain","y0":2.2324983492483566,"y1":2.2324983492483566,"yref":"y"}],"annotations":[{"showarrow":false,"text":"\u603b\u4f53\u52a0\u6743\u884c\u4e3a\u6b21\u6570\u6bd4: 2.23%","x":0,"xanchor":"left","xref":"x domain","y":2.2324983492483566,"yanchor":"top","yref":"y"}],"yaxis":{"range":[0,5],"showgrid":false,"zeroline":false},"title":{"text":"\u003cb\u003e\u6309\u5c0f\u65f6\u7684\u6d4f\u89c8\u4e0e\u8d2d\u4e70\u884c\u4e3a\u6b21\u6570\u6bd4\u003c\u002fb\u003e"},"plot_bgcolor":"white","paper_bgcolor":"white","xaxis":{"showgrid":false,"zeroline":false}},                        {"responsive": true}                    ).then(function(){
-                            
-var gd = document.getElementById('25a0598a-f201-419e-a431-e78ae8e9403e');
+fig.show()</code></pre></details><section class="cell-output chart-output"><div style="height:525px; width:100%;">                                <div id="25cea10b-fc1f-487f-bc41-4ce93f0d4ab6" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("25cea10b-fc1f-487f-bc41-4ce93f0d4ab6")) {                    Plotly.newPlot(                        "25cea10b-fc1f-487f-bc41-4ce93f0d4ab6",                        [{"marker":{"color":{"dtype":"f8","bdata":"MVMRIBUE\u002fj+VxT+xl+b5P7tmzilu1Pg\u002fYigW7nlX+D9erARkBef3P6e7CuKLTPY\u002fGGArCshb9z9TdHeKC+X6P4KfnSCh8wBAIu+pNjZ9BECRDMtU\u002fW4HQIi6iDzv+wZAciw8z5IhBkCiVKLnxQwFQHjSh72x4QRA56xNJQBHBEA7gSL8PRIEQPfiQinaJANA6CKRsw+pAUC581+lYdUAQLFDVDucJABAUes8Oj2t\u002fj\u002fBANBJL4z9P\u002focKQ25aPw\u002f"},"coloraxis":"coloraxis"},"name":"\u6d4f\u89c8\u8f6c\u8d2d\u4e70\u884c\u4e3a\u6b21\u6570\u6bd4","x":{"dtype":"i1","bdata":"AAECAwQFBgcICQoLDA0ODxAREhMUFRYX"},"y":{"dtype":"f8","bdata":"MVMRIBUE\u002fj+VxT+xl+b5P7tmzilu1Pg\u002fYigW7nlX+D9erARkBef3P6e7CuKLTPY\u002fGGArCshb9z9TdHeKC+X6P4KfnSCh8wBAIu+pNjZ9BECRDMtU\u002fW4HQIi6iDzv+wZAciw8z5IhBkCiVKLnxQwFQHjSh72x4QRA56xNJQBHBEA7gSL8PRIEQPfiQinaJANA6CKRsw+pAUC581+lYdUAQLFDVDucJABAUes8Oj2t\u002fj\u002fBANBJL4z9P\u002focKQ25aPw\u002f"},"type":"bar"}],                        {"template":{"layout":{"paper_bgcolor":"white","plot_bgcolor":"white","xaxis":{"showgrid":false,"zeroline":false},"yaxis":{"showgrid":false,"zeroline":false}}},"shapes":[{"line":{"color":"grey","dash":"dash"},"type":"line","x0":0,"x1":1,"xref":"x domain","y0":2.2324983492483566,"y1":2.2324983492483566,"yref":"y"}],"annotations":[{"showarrow":false,"text":"\u603b\u4f53\u52a0\u6743\u884c\u4e3a\u6b21\u6570\u6bd4: 2.23%","x":0,"xanchor":"left","xref":"x domain","y":2.2324983492483566,"yanchor":"top","yref":"y"}],"yaxis":{"range":[0,5],"showgrid":false,"zeroline":false},"title":{"text":"\u003cb\u003e\u6309\u5c0f\u65f6\u7684\u6d4f\u89c8\u4e0e\u8d2d\u4e70\u884c\u4e3a\u6b21\u6570\u6bd4\u003c\u002fb\u003e"},"plot_bgcolor":"white","paper_bgcolor":"white","xaxis":{"showgrid":false,"zeroline":false}},                        {"responsive": true}                    ).then(function(){
+
+var gd = document.getElementById('25cea10b-fc1f-487f-bc41-4ce93f0d4ab6');
 var x = new MutationObserver(function (mutations, observer) {{
         var display = window.getComputedStyle(gd).display;
         if (!display || display === 'none') {{
@@ -565,7 +567,7 @@ if (outputEl) {{
     x.observe(outputEl, {childList: true});
 }}
 
-                        })                };            </script>        </div></section><section class="markdown"><p>从小时分布看，用户行为呈现明显的昼夜周期特征。22点后互动量快速下降，3—5点为全天低谷；6点后逐步回升，10—18点保持较稳定的活跃水平；晚间进一步增长，20—22点进入流量高峰，21点整体互动量最高。<br> 从购买与浏览行为次数比看，全时段总体水平约为 2.23%。其中10—17点明显高于或接近整体水平，10—12点表现最佳，峰值接近3%；20—22点虽然浏览、收藏和购买规模最大，但购买/浏览次数比反而回落至约2%左右。这表明流量高峰并不等于转化效率高峰。<br> 运营上建议采取“白天抓流量、晚间抓转化”策略：10—16点重点强化核心商品曝光、直播及内容营销；20—22点投放限时优惠、加购召回和高转化商品，并通过个性化推荐承接高流量。同时减少凌晨低效时段的营销投入。<br> 需要注意，上述比例仍属于行为次数比，不能直接等同于同一用户路径下的真实转化率，且所实行的策略效果仍需A|B实验检验验证。<br></p></section><section class="markdown"><p>根据以上所有图表进行分析，一般而言，每周周末的晚上八点到十点是该周的流量黄金时段，最适合大规模铺设营销资源，实现流量效应的利益最大化；而每周工作日的凌晨时段是该周的流量低谷期，应减少营销投入，节约成本。<br> 该结论仅结合这数天的数据进行分析，不能严格当作长期的流量规律，关于长期规律仍需未来更多数据作为理论支撑。<br></p></section><section class="markdown"><hr></section><section class="markdown"><h1>商品价值分析</h1></section><section class="markdown"><p>按照商品汇总其pv,cart,fav,buy的数量创建两个新的VIEW，分别按照商品id和商品类目id汇总分析。<br> 定义一个新的数据为like，其值为喜爱或购买某商品的用户数。<br> 清除掉部分访问极少的商品(pv&lt;5000)以防止极端值影响结果真实性。<br></p></section><details class="code"><summary>Python 代码</summary><pre><code class="language-python">#构建数据库
+                        })                };            </script>        </div></section><section class="markdown"><p>从小时分布看，用户行为呈现明显的昼夜周期特征。22点后互动量快速下降，3—5点为全天低谷；6点后逐步回升，10—18点保持较稳定的活跃水平；晚间进一步增长，20—22点进入流量高峰，21点整体互动量最高。<br> 从购买与浏览行为次数比看，全时段总体水平约为 2.23%。其中10—17点明显高于或接近整体水平，10—12点表现最佳，峰值接近3%；20—22点虽然浏览、收藏和购买规模最大，但购买/浏览次数比反而回落至约2%左右。这表明流量高峰并不等于转化效率高峰。<br> 运营上建议采取“白天抓流量、晚间抓转化”策略：10—16点重点强化核心商品曝光、直播及内容营销；20—22点投放限时优惠、加购召回和高转化商品，并通过个性化推荐承接高流量。同时减少凌晨低效时段的营销投入。<br> 需要注意，上述比例仍属于行为次数比，不能直接等同于同一用户路径下的真实转化率，且所实行的策略效果仍需A|B实验检验验证。<br></p></section><section class="markdown"><p>根据以上所有图表进行分析，一般而言，每周周末的晚上八点到十点是该周的流量黄金时段，最适合大规模铺设营销资源，实现流量效应的利益最大化；而每周工作日的凌晨时段是该周的流量低谷期，应减少营销投入，节约成本。<br> 该结论仅结合这数天的数据进行分析，不能严格当作长期的流量规律，关于长期规律仍需未来更多数据作为理论支撑。<br></p></section><section class="markdown"><hr></section><section class="markdown"><h1>商品价值分析</h1></section><section class="markdown"><p>按照商品汇总其pv,cart,fav,buy的数量创建两个新的VIEW，分别按照商品id和商品类目id汇总分析。<br> 定义一个新的数据为like，其值为喜爱或购买某商品的独立用户数。<br> 清除掉部分访问极少的商品(pv&lt;5000)以防止极端值影响结果真实性。<br></p></section><details class="code"><summary>Python 代码</summary><pre><code class="language-python">#构建数据库
 _ = duckdb.connect(db)
 
 _.execute(&quot;&quot;&quot;
@@ -574,9 +576,9 @@ _.execute(&quot;&quot;&quot;
     (
         SELECT
             good_id,
-            count(DISTINCT CASE WHEN act = &#x27;pv&#x27; THEN user_id END) AS pv_cnt,
-            count(DISTINCT CASE WHEN act IN (&#x27;fav&#x27;, &#x27;cart&#x27;) THEN user_id END) AS like_cnt,
-            count(DISTINCT CASE WHEN act = &#x27;buy&#x27; THEN user_id END) AS buy_cnt
+            count(DISTINCT CASE WHEN act = 'pv' THEN user_id END) AS pv_cnt,
+            count(DISTINCT CASE WHEN act IN ('fav', 'cart') THEN user_id END) AS like_cnt,
+            count(DISTINCT CASE WHEN act = 'buy' THEN user_id END) AS buy_cnt
         FROM
             Cleaned
         GROUP BY
@@ -594,7 +596,7 @@ _.execute(&quot;&quot;&quot;
         round(buy_cnt/pv_cnt*100,2) AS 浏览转购买率
     FROM
         matric
-    ORDER BY 
+    ORDER BY
         浏览转购买率 DESC
 &quot;&quot;&quot;)
 
@@ -604,9 +606,9 @@ _.execute(&quot;&quot;&quot;
     (
         SELECT
             prop_id,
-            count(DISTINCT CASE WHEN act = &#x27;pv&#x27; THEN user_id END) AS pv_cnt,
-            count(DISTINCT CASE WHEN act IN (&#x27;fav&#x27;, &#x27;cart&#x27;) THEN user_id END) AS like_cnt,
-            count(DISTINCT CASE WHEN act = &#x27;buy&#x27; THEN user_id END) AS buy_cnt
+            count(DISTINCT CASE WHEN act = 'pv' THEN user_id END) AS pv_cnt,
+            count(DISTINCT CASE WHEN act IN ('fav', 'cart') THEN user_id END) AS like_cnt,
+            count(DISTINCT CASE WHEN act = 'buy' THEN user_id END) AS buy_cnt
         FROM
             Cleaned
         GROUP BY
@@ -624,7 +626,7 @@ _.execute(&quot;&quot;&quot;
         round(buy_cnt/pv_cnt*100,2) AS 浏览转购买率
     FROM
         matric
-    ORDER BY 
+    ORDER BY
         浏览转购买率 DESC
 &quot;&quot;&quot;)
 
@@ -635,35 +637,35 @@ _.close()
 
 fig = go.Figure(data=[
     go.Scatter(
-        x=df[&#x27;独立浏览次数&#x27;], 
-        y=df[&#x27;浏览转购买率&#x27;],
-        mode=&#x27;markers&#x27;,
+        x=df['独立浏览次数'],
+        y=df['浏览转购买率'],
+        mode='markers',
         opacity = 0.7,
-        marker=dict(size=df[&#x27;独立购买次数&#x27;],sizemode=&#x27;area&#x27;,sizeref=50,color=df[&#x27;独立购买次数&#x27;], coloraxis=&quot;coloraxis&quot;)),
+        marker=dict(size=df['独立购买次数'],sizemode='area',sizeref=50,color=df['独立购买次数'], coloraxis=&quot;coloraxis&quot;)),
 ])
 
-mean_x = df[&#x27;独立浏览次数&#x27;].mean()
-mean_y = df[&#x27;浏览转购买率&#x27;].mean()
+mean_x = df['独立浏览次数'].mean()
+mean_y = df['浏览转购买率'].mean()
 
 fig.add_vline(
-    x=mean_x, 
-    line_dash=&quot;dash&quot;, 
-    line_color=&quot;grey&quot;, 
+    x=mean_x,
+    line_dash=&quot;dash&quot;,
+    line_color=&quot;grey&quot;,
     annotation_text=f&quot;平均浏览量: {mean_x:.1f}&quot;, # 参考线旁的文字说明
     annotation_position=&quot;bottom left&quot;
 )
 fig.add_hline(
-    y=mean_y, 
-    line_dash=&quot;dash&quot;, 
-    line_color=&quot;grey&quot;, 
+    y=mean_y,
+    line_dash=&quot;dash&quot;,
+    line_color=&quot;grey&quot;,
     annotation_text=f&quot;平均转化率: {mean_y:.1f}&quot;, # 参考线旁的文字说明
     annotation_position=&quot;bottom left&quot;
 )
 
-fig.update_layout(title=&#x27;&lt;b&gt;商品类目象限图&lt;/b&gt;&#x27;)
-fig.show()</code></pre></details><section class="cell-output chart-output"><div style="height:525px; width:100%;">            <script>if (window.MathJax && window.MathJax.Hub && window.MathJax.Hub.Config) {window.MathJax.Hub.Config({SVG: {font: "STIX-Web"}});}</script>                    <div id="35cf706d-d271-42e4-8c2f-8ba6341b5b64" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("35cf706d-d271-42e4-8c2f-8ba6341b5b64")) {                    Plotly.newPlot(                        "35cf706d-d271-42e4-8c2f-8ba6341b5b64",                        [{"marker":{"color":{"dtype":"i2","bdata":"tgytB8oL4AexPDsYuQc8C7kJngaNGGMKBAVnCo4LlQXIC1AGWhUvBi8U0gpkBIwH+gVmCcUE0haPBHgMHwedB9gNMwe7B\u002fsEnx04EpIGWGm6BLgErwO5BNELxgaaBOcDUw+bBfcMRXStA88H2zR0BE0HfwbUBWwD7AO2CP4E0AY5A0kJ7QQ+BB0EVQO4CV4GfQMQDRgJVjNKBFQaPQTJA3YDPQS4A9QFpQMXBOMFlgYHBIgEyAPmBOUDvhc1BFMX0gbjCQsXvgMeCPQCeQiCBRcGJgPWAoEDcQVQDc0DnwbEArgCuAJtBqAISQXbAj4GiQdyAy4M5gPFBwUExwikAmMElBPhAqwMugL8AtQX0wN+HUYFbgUCBLEDvh22BZQIkgKOAkUD+gITBAkDgwkbHEUDXQTaAt4IXgQ+F\u002fcDBgzDCWUDvglYHXkDPQO8DHkF\u002fxVLBBQJpwKYBs0C2Q5eA84H6gatA\u002f4H2AiuA40CbQaIBAgEIQ9gBIgezwdnBNkCZwhLA2QCVQNGBnQcpW8EGpEFhwJHAqQCRAKWAmkI+QYqN2ULpC1DAtsGKAJABEYzsgflBtgCshZiAmwDZAeqAiICxQINBZkDlQOOAkUGnQXaCHACAA2DBVwCFyacAjEEQAOrAjcEuwJjAxsCGQIQAjoE5gN4BVgDSwK+AkEDLgKSA2oCjgPfA70EIwNBDPIGiAQuApYKSAvLCi8DmgM0DP4Bog0nC18C\u002fAGmLrMISQQSE6cQXgfdBxgCuwJGA4AEywHVBqUkJBXNCpwC0gHIAkICBRZ6AhwI7iQIBUQCOwX0AXUIagTtAegH\u002fgJaAvgDqQEFCJ0BUQbFAecCkAM8BQkE6ATfDKMB0wHGBR0IeAayA3ADOxiRBN0B8AECA\u002fEBrgVvAo4G4gLWAY8E\u002fRN5BiQEjwHnAu8KigaKAQ8M1gOcC6cF+QN7BMQB\u002fwbfGahqfQGcBisKqQV8KUYCHAhHA+wIegHJAYwR4AVaA7oCtQLeAmYBZwQlWBwMYgHgBrwCKwzyBKYFtAGgAVoGxAjYAUACugHTAWQBMgJ6Eu8GIALRAbcBbgFhDeMIaAKfAW0B+BOTBPcBPwLBAmoC+we\u002fATUgUg4JAokBBghFDHMB8QEQA10w2AF2AtUISwFLAmMC6wLcAeoWEwkAAyoEFwTVArUMwwQfAngB1gFhA4gDbwK8A58BBwT5W1UDiwHfOBgDXgEfAVkCXwFVAWgBsAGMEZMBSQGfAtkBVQEyAa8BJwF3BqwDgQGvEiIIPQEiUg4CHwpYAT0CRwJQJG0BywEOAUkBpQEbAa8BHQGmA+oELQYSAsYG1QPnAZoFBAEqAWEBjQVXASANbgEEASQQOgbcA3AljAH+AacD0wGzCJcB9QJSAasDMwJYAfYAQAE6Ai4WdgpeAVgBtgGaD+IB\u002fABKHbMB9QBKAXYBMwIIAfsApQEvAdwBfwFmBMc5bQHoAJkrVgE+AtYABgHQAGkCkQFUAV8FFATkAAQBNQ3bAH8DiAEHARkBTAPkAB4BFgHAAQwKqwHXAE8EeQHiETgB3wD5ALMEKgH0CCcBigUBAh8B8gG\u002fAGMDtwAdAUMBuQBcAV4EDQGuAOkNsgA9Kb4A1wzaAHwB9wLrAK8AtgBXCfsA7wDhAEEBoAOsAp4A9QDNADoFAAFWAdMA2wC9ALkoyQCoAJkAjAPUAIcG6QDtAJIfigHFAIUAqgDIALoA7gJPASwBGwfYABQBzwABC84BowAYAY8BVAHFBbUAmwHvALYBlAClAHsAfgMhARgBmQDuAFcCngCWANkBcgV6AIgAdADFAGQAuwD5AH8AYgC3AL8AegCZAM0AkQ+nAHUB7gCXADACZgC2ATYBRwH1AekA4QDqAI8ATgCRAY4AtABSALAALQl5A44AFAhNAOoAUQBVAGsAqgBDAFUAPQBhAI8AaQA7ADsASABAAE4AVQBZADMAXwA4AGwAMgBrAI0CmAApADkAIgBDADgAGQAXACAAFAAOACEA"},"coloraxis":"coloraxis","size":{"dtype":"i2","bdata":"tgytB8oL4AexPDsYuQc8C7kJngaNGGMKBAVnCo4LlQXIC1AGWhUvBi8U0gpkBIwH+gVmCcUE0haPBHgMHwedB9gNMwe7B\u002fsEnx04EpIGWGm6BLgErwO5BNELxgaaBOcDUw+bBfcMRXStA88H2zR0BE0HfwbUBWwD7AO2CP4E0AY5A0kJ7QQ+BB0EVQO4CV4GfQMQDRgJVjNKBFQaPQTJA3YDPQS4A9QFpQMXBOMFlgYHBIgEyAPmBOUDvhc1BFMX0gbjCQsXvgMeCPQCeQiCBRcGJgPWAoEDcQVQDc0DnwbEArgCuAJtBqAISQXbAj4GiQdyAy4M5gPFBwUExwikAmMElBPhAqwMugL8AtQX0wN+HUYFbgUCBLEDvh22BZQIkgKOAkUD+gITBAkDgwkbHEUDXQTaAt4IXgQ+F\u002fcDBgzDCWUDvglYHXkDPQO8DHkF\u002fxVLBBQJpwKYBs0C2Q5eA84H6gatA\u002f4H2AiuA40CbQaIBAgEIQ9gBIgezwdnBNkCZwhLA2QCVQNGBnQcpW8EGpEFhwJHAqQCRAKWAmkI+QYqN2ULpC1DAtsGKAJABEYzsgflBtgCshZiAmwDZAeqAiICxQINBZkDlQOOAkUGnQXaCHACAA2DBVwCFyacAjEEQAOrAjcEuwJjAxsCGQIQAjoE5gN4BVgDSwK+AkEDLgKSA2oCjgPfA70EIwNBDPIGiAQuApYKSAvLCi8DmgM0DP4Bog0nC18C\u002fAGmLrMISQQSE6cQXgfdBxgCuwJGA4AEywHVBqUkJBXNCpwC0gHIAkICBRZ6AhwI7iQIBUQCOwX0AXUIagTtAegH\u002fgJaAvgDqQEFCJ0BUQbFAecCkAM8BQkE6ATfDKMB0wHGBR0IeAayA3ADOxiRBN0B8AECA\u002fEBrgVvAo4G4gLWAY8E\u002fRN5BiQEjwHnAu8KigaKAQ8M1gOcC6cF+QN7BMQB\u002fwbfGahqfQGcBisKqQV8KUYCHAhHA+wIegHJAYwR4AVaA7oCtQLeAmYBZwQlWBwMYgHgBrwCKwzyBKYFtAGgAVoGxAjYAUACugHTAWQBMgJ6Eu8GIALRAbcBbgFhDeMIaAKfAW0B+BOTBPcBPwLBAmoC+we\u002fATUgUg4JAokBBghFDHMB8QEQA10w2AF2AtUISwFLAmMC6wLcAeoWEwkAAyoEFwTVArUMwwQfAngB1gFhA4gDbwK8A58BBwT5W1UDiwHfOBgDXgEfAVkCXwFVAWgBsAGMEZMBSQGfAtkBVQEyAa8BJwF3BqwDgQGvEiIIPQEiUg4CHwpYAT0CRwJQJG0BywEOAUkBpQEbAa8BHQGmA+oELQYSAsYG1QPnAZoFBAEqAWEBjQVXASANbgEEASQQOgbcA3AljAH+AacD0wGzCJcB9QJSAasDMwJYAfYAQAE6Ai4WdgpeAVgBtgGaD+IB\u002fABKHbMB9QBKAXYBMwIIAfsApQEvAdwBfwFmBMc5bQHoAJkrVgE+AtYABgHQAGkCkQFUAV8FFATkAAQBNQ3bAH8DiAEHARkBTAPkAB4BFgHAAQwKqwHXAE8EeQHiETgB3wD5ALMEKgH0CCcBigUBAh8B8gG\u002fAGMDtwAdAUMBuQBcAV4EDQGuAOkNsgA9Kb4A1wzaAHwB9wLrAK8AtgBXCfsA7wDhAEEBoAOsAp4A9QDNADoFAAFWAdMA2wC9ALkoyQCoAJkAjAPUAIcG6QDtAJIfigHFAIUAqgDIALoA7gJPASwBGwfYABQBzwABC84BowAYAY8BVAHFBbUAmwHvALYBlAClAHsAfgMhARgBmQDuAFcCngCWANkBcgV6AIgAdADFAGQAuwD5AH8AYgC3AL8AegCZAM0AkQ+nAHUB7gCXADACZgC2ATYBRwH1AekA4QDqAI8ATgCRAY4AtABSALAALQl5A44AFAhNAOoAUQBVAGsAqgBDAFUAPQBhAI8AaQA7ADsASABAAE4AVQBZADMAXwA4AGwAMgBrAI0CmAApADkAIgBDADgAGQAXACAAFAAOACEA"},"sizemode":"area","sizeref":50},"mode":"markers","opacity":0.7,"x":{"dtype":"i4","bdata":"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"},"y":{"dtype":"f8","bdata":"hetRuB7lQECamZmZmRlAQKRwPQrXYz9AmpmZmZkZP0BSuB6F6xE+QArXo3A9ijxAPQrXo3C9O0D2KFyPwrU7QK5H4XoUrjtAXI\u002fC9SicO0CamZmZmRk7QPYoXI\u002fCtTlAXI\u002fC9ShcOUDXo3A9Clc4QB+F61G4njdAcT0K16NwN0CamZmZmZk2QI\u002fC9ShcTzZAXI\u002fC9SicNUCF61G4HoU1QAAAAAAAgDVAZmZmZmZmNUBmZmZmZiY1QEjhehSuBzVAw\u002fUoXI\u002fCNEAAAAAAAMA0QI\u002fC9ShcDzRA9ihcj8L1M0CamZmZmZkzQI\u002fC9ShcjzNAzczMzMyMM0B7FK5H4XozQMP1KFyPAjNArkfhehTuMkDhehSuR+EyQFyPwvUo3DJAZmZmZmamMkAK16NwPYoyQAAAAAAAgDJArkfhehQuMkBcj8L1KBwyQOxRuB6F6zFAKVyPwvXoMUA9CtejcL0xQK5H4XoUrjFAUrgeheuRMUCF61G4HoUxQDMzMzMzczFAMzMzMzNzMUBxPQrXo3AxQK5H4XoUbjFArkfhehRuMUDsUbgehWsxQJqZmZmZWTFASOF6FK5HMUDhehSuRyExQB+F61G4HjFAuB6F61H4MEAfhetRuN4wQNejcD0K1zBAUrgehevRMEBI4XoUrscwQFK4HoXrkTBAzczMzMyMMEBxPQrXozAwQClcj8L1KDBAXI\u002fC9SgcMEDsUbgehesvQOxRuB6Fay9A7FG4HoVrL0AK16NwPQovQPYoXI\u002fC9S5AcT0K16PwLkA9CtejcL0uQLgehetRuC5AKVyPwvWoLkCamZmZmZkuQBSuR+F6lC5AhetRuB6FLkD2KFyPwnUuQGZmZmZmZi5A4XoUrkdhLkBI4XoUrkcuQMP1KFyPQi5AKVyPwvUoLkBSuB6F69EtQMP1KFyPwi1APQrXo3C9LUCkcD0K16MtQB+F61G4ni1A9ihcj8J1LUBxPQrXo3AtQOxRuB6Fay1AZmZmZmZmLUBcj8L1KFwtQFK4HoXrUS1APQrXo3A9LUBmZmZmZuYsQFK4HoXr0SxAUrgehevRLEBI4XoUrscsQLgehetRuCxArkfhehSuLECPwvUoXI8sQIXrUbgehSxAhetRuB6FLEDD9Shcj0IsQK5H4XoULixArkfhehQuLEApXI\u002fC9SgsQHE9Ctej8CtA4XoUrkfhK0CuR+F6FK4rQClcj8L1qCtAH4XrUbieK0CPwvUoXI8rQOxRuB6FaytAZmZmZmZmK0A9CtejcD0rQClcj8L1KCtAKVyPwvUoK0AfhetRuB4rQBSuR+F6FCtA4XoUrkfhKkDNzMzMzMwqQM3MzMzMzCpAw\u002fUoXI\u002fCKkDD9Shcj8IqQK5H4XoUripArkfhehSuKkCkcD0K16MqQJqZmZmZmSpACtejcD2KKkAzMzMzMzMqQK5H4XoULipApHA9CtcjKkAfhetRuB4qQBSuR+F6FCpAhetRuB4FKkB7FK5H4fopQPYoXI\u002fC9SlAcT0K16PwKUBxPQrXo\u002fApQOxRuB6F6ylAzczMzMzMKUDNzMzMzMwpQEjhehSuxylAw\u002fUoXI\u002fCKUA9CtejcL0pQClcj8L1qClApHA9CtejKUD2KFyPwnUpQGZmZmZmZilA16NwPQpXKUDXo3A9ClcpQMP1KFyPQilAuB6F61E4KUC4HoXrUTgpQK5H4XoULilAKVyPwvUoKUAfhetRuB4pQJqZmZmZGSlAmpmZmZkZKUCamZmZmRkpQHsUrkfh+ihA7FG4HoXrKEDXo3A9CtcoQClcj8L1qChAH4XrUbieKECamZmZmZkoQNejcD0KVyhAw\u002fUoXI9CKECuR+F6FC4oQK5H4XoULihAmpmZmZkZKEBxPQrXo\u002fAnQD0K16NwvSdArkfhehSuJ0CamZmZmZknQJqZmZmZmSdACtejcD2KJ0B7FK5H4XonQHsUrkfheidA7FG4HoVrJ0Bcj8L1KFwnQFyPwvUoXCdA9ihcj8L1JkBcj8L1KNwmQFyPwvUo3CZA16NwPQrXJkBSuB6F69EmQEjhehSuxyZAw\u002fUoXI\u002fCJkCuR+F6FK4mQK5H4XoUriZAhetRuB6FJkCF61G4HoUmQGZmZmZmZiZAZmZmZmZmJkDXo3A9ClcmQFK4HoXrUSZArkfhehQuJkCkcD0K1yMmQArXo3A9CiZAAAAAAAAAJkD2KFyPwvUlQGZmZmZm5iVAXI\u002fC9SjcJUDXo3A9CtclQFK4HoXr0SVApHA9CtejJUAUrkfhepQlQAAAAAAAgCVAexSuR+F6JUBcj8L1KFwlQNejcD0KVyVAzczMzMxMJUDD9Shcj0IlQD0K16NwPSVAKVyPwvUoJUCPwvUoXA8lQI\u002fC9ShcDyVAAAAAAAAAJUBxPQrXo\u002fAkQHE9Ctej8CRA4XoUrkfhJEDXo3A9CtckQNejcD0K1yRASOF6FK7HJEApXI\u002fC9agkQClcj8L1qCRAH4XrUbieJEAUrkfhepQkQIXrUbgehSRAAAAAAACAJEBmZmZmZmYkQMP1KFyPQiRAPQrXo3A9JEA9CtejcD0kQD0K16NwPSRAKVyPwvUoJECF61G4HgUkQHsUrkfh+iNA4XoUrkfhI0Bcj8L1KNwjQNejcD0K1yNAUrgehevRI0DD9Shcj8IjQK5H4XoUriNApHA9CtejI0CPwvUoXI8jQArXo3A9iiNAAAAAAACAI0D2KFyPwnUjQOxRuB6FayNA7FG4HoVrI0DsUbgehWsjQOF6FK5HYSNA16NwPQpXI0DNzMzMzEwjQEjhehSuRyNArkfhehQuI0CuR+F6FC4jQB+F61G4HiNAexSuR+H6IkD2KFyPwvUiQOxRuB6F6yJAzczMzMzMIkC4HoXrUbgiQK5H4XoUriJAj8L1KFyPIkDhehSuR2EiQEjhehSuRyJAPQrXo3A9IkAzMzMzMzMiQArXo3A9CiJAexSuR+H6IUB7FK5H4fohQOxRuB6F6yFAXI\u002fC9SjcIUBcj8L1KNwhQNejcD0K1yFAw\u002fUoXI\u002fCIUA9CtejcL0hQDMzMzMzsyFAmpmZmZmZIUAUrkfhepQhQArXo3A9iiFA4XoUrkdhIUDhehSuR2EhQM3MzMzMTCFAuB6F61E4IUApXI\u002fC9SghQKRwPQrXIyFAH4XrUbgeIUAUrkfhehQhQBSuR+F6FCFAj8L1KFwPIUCPwvUoXA8hQArXo3A9CiFAhetRuB4FIUB7FK5H4fogQHE9Ctej8CBA7FG4HoXrIEDsUbgehesgQGZmZmZm5iBAXI\u002fC9SjcIEDXo3A9CtcgQD0K16NwvSBAuB6F61G4IECuR+F6FK4gQB+F61G4niBAH4XrUbieIEAK16NwPYogQGZmZmZmZiBAUrgehetRIEDNzMzMzEwgQMP1KFyPQiBAPQrXo3A9IEApXI\u002fC9SggQKRwPQrXIyBAH4XrUbgeIEAfhetRuB4gQJqZmZmZGSBAFK5H4XoUIECF61G4HgUgQIXrUbgeBSBAhetRuB4FIEDsUbgehesfQOF6FK5H4R9Aw\u002fUoXI\u002fCH0C4HoXrUbgfQJqZmZmZmR9Aj8L1KFyPH0BmZmZmZmYfQFyPwvUoXB9ASOF6FK5HH0A9CtejcD0fQDMzMzMzMx9AMzMzMzMzH0D2KFyPwvUeQPYoXI\u002fC9R5A9ihcj8L1HkDhehSuR+EeQNejcD0K1x5AuB6F61G4HkB7FK5H4XoeQFK4HoXrUR5APQrXo3A9HkA9CtejcD0eQClcj8L1KB5AKVyPwvUoHkAAAAAAAAAeQAAAAAAAAB5A7FG4HoXrHUDNzMzMzMwdQMP1KFyPwh1Aw\u002fUoXI\u002fCHUC4HoXrUbgdQKRwPQrXox1AZmZmZmZmHUBSuB6F61EdQD0K16NwPR1APQrXo3A9HUAzMzMzMzMdQDMzMzMzMx1AKVyPwvUoHUAK16NwPQodQOxRuB6F6xxAzczMzMzMHEDD9Shcj8IcQIXrUbgehRxAcT0K16NwHEBxPQrXo3AcQFK4HoXrURxAUrgehetRHEAUrkfhehQcQBSuR+F6FBxAFK5H4XoUHEAUrkfhehQcQM3MzMzMzBtAzczMzMzMG0C4HoXrUbgbQJqZmZmZmRtAmpmZmZmZG0CF61G4HoUbQIXrUbgehRtAexSuR+F6G0B7FK5H4XobQGZmZmZmZhtAPQrXo3A9G0ApXI\u002fC9SgbQAAAAAAAABtA4XoUrkfhGkC4HoXrUbgaQK5H4XoUrhpAmpmZmZmZGkCF61G4HoUaQHE9CtejcBpAZmZmZmZmGkBcj8L1KFwaQEjhehSuRxpAPQrXo3A9GkA9CtejcD0aQB+F61G4HhpAFK5H4XoUGkAK16NwPQoaQArXo3A9ChpA7FG4HoXrGUDhehSuR+EZQNejcD0K1xlAzczMzMzMGUC4HoXrUbgZQLgehetRuBlApHA9CtejGUBxPQrXo3AZQFK4HoXrURlASOF6FK5HGUBI4XoUrkcZQB+F61G4HhlACtejcD0KGUDsUbgehesYQOxRuB6F6xhA16NwPQrXGEDNzMzMzMwYQKRwPQrXoxhAmpmZmZmZGECPwvUoXI8YQI\u002fC9ShcjxhAhetRuB6FGECF61G4HoUYQGZmZmZmZhhAUrgehetRGEBI4XoUrkcYQEjhehSuRxhACtejcD0KGEAK16NwPQoYQArXo3A9ChhAAAAAAAAAGEDXo3A9CtcXQM3MzMzMzBdAzczMzMzMF0C4HoXrUbgXQKRwPQrXoxdAmpmZmZmZF0BmZmZmZmYXQFyPwvUoXBdASOF6FK5HF0ApXI\u002fC9SgXQB+F61G4HhdAH4XrUbgeF0D2KFyPwvUWQOxRuB6F6xZAzczMzMzMFkDD9Shcj8IWQLgehetRuBZArkfhehSuFkCPwvUoXI8WQIXrUbgehRZAhetRuB6FFkB7FK5H4XoWQClcj8L1KBZACtejcD0KFkAAAAAAAAAWQPYoXI\u002fC9RVA9ihcj8L1FUDsUbgehesVQOF6FK5H4RVA16NwPQrXFUC4HoXrUbgVQLgehetRuBVArkfhehSuFUCamZmZmZkVQI\u002fC9ShcjxVAhetRuB6FFUB7FK5H4XoVQHE9CtejcBVAZmZmZmZmFUBmZmZmZmYVQD0K16NwPRVAMzMzMzMzFUApXI\u002fC9SgVQClcj8L1KBVAH4XrUbgeFUAfhetRuB4VQBSuR+F6FBVA9ihcj8L1FEDsUbgehesUQOF6FK5H4RRA4XoUrkfhFEDD9Shcj8IUQK5H4XoUrhRApHA9CtejFECPwvUoXI8UQHE9CtejcBRAXI\u002fC9ShcFEBSuB6F61EUQFK4HoXrURRAPQrXo3A9FEAzMzMzMzMUQB+F61G4HhRAH4XrUbgeFED2KFyPwvUTQPYoXI\u002fC9RNA16NwPQrXE0DNzMzMzMwTQK5H4XoUrhNApHA9CtejE0CPwvUoXI8TQIXrUbgehRNAhetRuB6FE0B7FK5H4XoTQHE9CtejcBNAXI\u002fC9ShcE0BI4XoUrkcTQClcj8L1KBNACtejcD0KE0AK16NwPQoTQAAAAAAAABNA9ihcj8L1EkD2KFyPwvUSQOxRuB6F6xJA7FG4HoXrEkDhehSuR+ESQM3MzMzMzBJAw\u002fUoXI\u002fCEkDD9Shcj8ISQK5H4XoUrhJApHA9CtejEkCkcD0K16MSQHE9CtejcBJAcT0K16NwEkA9CtejcD0SQBSuR+F6FBJAAAAAAAAAEkAAAAAAAAASQPYoXI\u002fC9RFA9ihcj8L1EUDsUbgehesRQOF6FK5H4RFAmpmZmZmZEUCF61G4HoURQIXrUbgehRFAexSuR+F6EUBmZmZmZmYRQFyPwvUoXBFAPQrXo3A9EUAzMzMzMzMRQDMzMzMzMxFAFK5H4XoUEUAAAAAAAAARQAAAAAAAABFA9ihcj8L1EEDXo3A9CtcQQLgehetRuBBAmpmZmZmZEECamZmZmZkQQI\u002fC9ShcjxBAcT0K16NwEEBSuB6F61EQQEjhehSuRxBAKVyPwvUoEEAfhetRuB4QQBSuR+F6FBBAFK5H4XoUEEAK16NwPQoQQOxRuB6F6w9A7FG4HoXrD0DXo3A9CtcPQMP1KFyPwg9Aw\u002fUoXI\u002fCD0CF61G4HoUPQHE9CtejcA9AXI\u002fC9ShcD0DhehSuR+EOQM3MzMzMzA5AuB6F61G4DkC4HoXrUbgOQHsUrkfheg5AexSuR+F6DkApXI\u002fC9SgOQAAAAAAAAA5A7FG4HoXrDUCF61G4HoUNQDMzMzMzMw1AH4XrUbgeDUAfhetRuB4NQOF6FK5H4QxAj8L1KFyPDEAAAAAAAAAMQIXrUbgehQtAhetRuB6FC0DhehSuR+EKQLgehetRuApApHA9CtejCkCkcD0K16MKQI\u002fC9ShcjwpAZmZmZmZmCkA9CtejcD0KQD0K16NwPQpAPQrXo3A9CkA9CtejcD0KQBSuR+F6FApAAAAAAAAACkBxPQrXo3AJQHE9CtejcAlAcT0K16NwCUAzMzMzMzMJQPYoXI\u002fC9QhAuB6F61G4CECPwvUoXI8IQGZmZmZmZghAPQrXo3A9CEApXI\u002fC9SgIQClcj8L1KAhAKVyPwvUoCEAAAAAAAAAIQOxRuB6F6wdA7FG4HoXrB0DD9Shcj8IHQMP1KFyPwgdAw\u002fUoXI\u002fCB0DD9Shcj8IHQK5H4XoUrgdAmpmZmZmZB0CF61G4HoUHQHE9CtejcAdAcT0K16NwB0BxPQrXo3AHQArXo3A9CgdAj8L1KFyPBkCPwvUoXI8GQGZmZmZmZgZAZmZmZmZmBkBmZmZmZmYGQFK4HoXrUQZAKVyPwvUoBkDD9Shcj8IFQMP1KFyPwgVAmpmZmZmZBUBcj8L1KFwFQPYoXI\u002fC9QRA9ihcj8L1BEDNzMzMzMwEQLgehetRuARApHA9CtejBEBmZmZmZmYEQFK4HoXrUQRAFK5H4XoUBEDsUbgehesDQNejcD0K1wNAw\u002fUoXI\u002fCA0DD9Shcj8IDQArXo3A9CgNA9ihcj8L1AkD2KFyPwvUCQOF6FK5H4QJAexSuR+F6AkBmZmZmZmYCQFK4HoXrUQJAUrgehetRAkA9CtejcD0CQD0K16NwPQJAFK5H4XoUAkDsUbgehesBQNejcD0K1wFAw\u002fUoXI\u002fCAUCuR+F6FK4BQHE9CtejcAFAcT0K16NwAUBcj8L1KFwBQOF6FK5H4QBA4XoUrkfhAECkcD0K16MAQFK4HoXrUQBAPQrXo3A9AEA9CtejcD0AQK5H4XoUrv8\u002fXI\u002fC9Shc\u002fz9cj8L1KFz\u002fPwrXo3A9Cv8\u002f4XoUrkfh\u002fj89CtejcD3+P+xRuB6F6\u002f0\u002fw\u002fUoXI\u002fC\u002fT9I4XoUrkf9P0jhehSuR\u002f0\u002f9ihcj8L1\u002fD\u002fNzMzMzMz8P6RwPQrXo\u002fw\u002fKVyPwvUo\u002fD\u002fXo3A9Ctf7P65H4XoUrvs\u002fCtejcD0K+z+4HoXrUbj6P2ZmZmZmZvo\u002fZmZmZmZm+j\u002fsUbgehev5P8P1KFyPwvk\u002fmpmZmZmZ+T\u002fNzMzMzMz4P6RwPQrXo\u002fg\u002fexSuR+F6+D97FK5H4Xr4P1K4HoXrUfg\u002fKVyPwvUo+D+uR+F6FK73P65H4XoUrvc\u002fXI\u002fC9Shc9z8zMzMzMzP3PwrXo3A9Cvc\u002f4XoUrkfh9j+4HoXrUbj2P2ZmZmZmZvY\u002fFK5H4XoU9j+amZmZmZn1P0jhehSuR\u002fU\u002f9ihcj8L19D97FK5H4Xr0P1K4HoXrUfQ\u002fAAAAAAAA9D+4HoXrUbjyPxSuR+F6FPI\u002f7FG4HoXr8T\u002fD9Shcj8LxP8P1KFyPwvE\u002fSOF6FK5H8T8fhetRuB7xPylcj8L1KPA\u002fFK5H4XoU7j8UrkfhehTuPzMzMzMzM+s\u002fj8L1KFyP6j+PwvUoXI\u002fqP4\u002fC9Shcj+o\u002fPQrXo3A96j\u002fsUbgehevpP0jhehSuR+k\u002fUrgehetR6D8AAAAAAADoP65H4XoUruc\u002frkfhehSu5z+4HoXrUbjmP8P1KFyPwuU\u002fhetRuB6F4z89CtejcD3iP1yPwvUoXN8\u002fzczMzMzM3D\u002fhehSuR+HaP5qZmZmZmdk\u002fw\u002fUoXI\u002fC1T+4HoXrUbjOP5qZmZmZmck\u002f"},"type":"scatter"}],                        {"template":{"layout":{"paper_bgcolor":"white","plot_bgcolor":"white","xaxis":{"showgrid":false,"zeroline":false},"yaxis":{"showgrid":false,"zeroline":false}}},"shapes":[{"line":{"color":"grey","dash":"dash"},"type":"line","x0":24259.644090305446,"x1":24259.644090305446,"xref":"x","y0":0,"y1":1,"yref":"y domain"},{"line":{"color":"grey","dash":"dash"},"type":"line","x0":0,"x1":1,"xref":"x domain","y0":8.241806108897743,"y1":8.241806108897743,"yref":"y"}],"annotations":[{"showarrow":false,"text":"\u5e73\u5747\u6d4f\u89c8\u91cf: 24259.6","x":24259.644090305446,"xanchor":"right","xref":"x","y":0,"yanchor":"bottom","yref":"y domain"},{"showarrow":false,"text":"\u5e73\u5747\u8f6c\u5316\u7387: 8.2","x":0,"xanchor":"left","xref":"x domain","y":8.241806108897743,"yanchor":"top","yref":"y"}],"title":{"text":"\u003cb\u003e\u5546\u54c1\u7c7b\u76ee\u8c61\u9650\u56fe\u003c\u002fb\u003e"}},                        {"responsive": true}                    ).then(function(){
-                            
-var gd = document.getElementById('35cf706d-d271-42e4-8c2f-8ba6341b5b64');
+fig.update_layout(title='&lt;b&gt;商品类目象限图&lt;/b&gt;')
+fig.show()</code></pre></details><section class="cell-output chart-output"><div style="height:525px; width:100%;">                                <div id="a85570cb-44df-4ea2-bd58-c5e641893b23" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("a85570cb-44df-4ea2-bd58-c5e641893b23")) {                    Plotly.newPlot(                        "a85570cb-44df-4ea2-bd58-c5e641893b23",                        [{"marker":{"color":{"dtype":"i2","bdata":"tgytB8oL4AexPDsYuQc8C7kJngaNGGMKBAVnCo4LlQXIC1AGWhUvBi8U0gpkBIwH+gVmCcUE0haPBHgMHwedB9gNMwe7B\u002fsEnx04EpIGWGm6BLgErwO5BNELxgaaBFMP5wObBfcMRXStA88H2zR0BE0HfwbUBWwD7AO2CP4E0AY5A0kJ7QQ+BFUDHQS4CV4GfQMQDRgJVjNKBFQaPQTJA3YDPQS4A9QFpQMXBOMFlgYHBIgEyAPmBOUDvhc1BFMX0gbjCQsXvgMeCPQCeQiCBSYDFwbWAnEFgQNQDc0DnwbEArgCuAJtBqAISQXbAj4GiQdyAy4M5gPFBwUExwikAmMElBPhAqwMugL8AtQX0wN+HUYFbgUCBLEDvh22BZQIjgKSAkUD+gITBAkDgwkbHEUD2gJdBN4IXgQ+F\u002fcDBgzDCb4JZQNYHXkDPQO8DHkF\u002fxVLBBQJpwLNApgG2Q5eA84H6gatA\u002f4H2AiNAq4DbQYIBIgEIQ9gBIgezwdnBNkCZwhkAksDVQNGBnQcpW8EGpEFhwJHAqQCRAKWAmkI+QYqN2ULpC1DAtsGKAJABEYzsgflBtgCshZsA2ICZAeqAiICxQINBZkDlQNFBo4CnQXaCHACAA2DBVwCMQQXJpwCQAOrAjcEuwJjAxsCGQIQAjoE5gN4BVgDSwK+Ai4CkgNBA2oCjgPfA70EIwNBDPIGiAQuApYKSAvLCi8DmgM0DP4Bog0nC18Cpi78AbMIEhNJBKcQXgfdBxgCuwJGA4AE1QbLAaUkJBXNCpwC0gFCAsgCegIFFhwI7iQIBUQCOwX0AXUIagTtAegH\u002fgJaAvgDqQEFCJ0BUQbFAecCkAM8BQkE3wzoBKMB0wHGBXgGHQiyA3ADOxiRBN0B8AECA\u002fEBrgVvAuICjgaPBNYB\u002fRN5BiQEjwHnAu8KigaKAdYDDwynBZwL+QN7BP8GxAHfGahqfQGcBqkFKwpGAnwpHAhHA+wIegHJAYwRWgPgBboCtQJnBCVY3gJmARwMYgHgBrwCKwymBfIEtAGgAVoGxAjYAUACugHTAWQBMgJ6Eu8GIALRAbcBbgFhDeMIaAJtAZ8B+BOTBPcBPwLBAmoC+we\u002fATUgUg4JAokBBghFDHMB8QEQA10w2AHVCHYCSwJLAWMC6wLqFtwBEwkAAyoEFwTVArUMwwQfAngB1gFhA4gDbwK8AwcEnwH5W1UDiwHfOBgDXgEfAV8BWQJVAWgBsAGMEUkBkwGfAtkBVQGvATIBJwF3BqwDgQGvEiIIIlI9AQ4CHwo9AlgBUCRHAm0BywEOAUkBpQEbAa8BHQGmA+oELQYSAsYG1QPnAQQBmgUqAWEBjQVXASANbgEEAToGJBDcA3AljAH+AacDswjTAZcB9QJSAasDMwJYAfYAOgJAAS4WXgF2CrYBWAGaD+IBSh38ALMB9QBKAXYBMwL7AAgBpQEvAdwBfwFmBMc5bQGZK+gAVgE+AtYA0AAGAWkCkQFUAV8FFATkAAQBNQ3bAIgBfwMHARkBTAPkAB4BFgHAAQwKqwHXAHkBTwTiETgB3wD5ALME9AgqAScBigUBAvIBHwG\u002fAGMDHQG3AEMBuQBcAa4AXgQNAekNsgDXDL4APSnaAHwB9wLrAK8AtgD7AO8AVwnhAKADQQHNAJ4ArAL1ADoFAAFWAdsA0wC9ALkoyQCoAIwDmQDUAIcG6QDtAJIfigHFAIUAqgDIALoA7gJPASwBGwfYABQBAQvPAM4BGAGjAI8BVAHFBZsBtQDvALYBlAClAHsAfgMhAZkAGAHuAJ4AVwKWANkBegByBYgAxQB0AGQAuwD5AH8AYgC3AL8AegCZAM0AkQ+nAHUB7gCXAGYAMAK2ATYBRwH1AekA6gDhAI8ATgCRAY4AtABSALAALQl5A44AFAhNAOoAUQBVAGsAqgBDAFUAPQCPAGEAaQA7ADsASABAAE4AMwBZAFUAXwA4AGwAMgBrAI0CmAApADkAIgBDADgAGQAXACAAFAAOACEA"},"coloraxis":"coloraxis","size":{"dtype":"i2","bdata":"tgytB8oL4AexPDsYuQc8C7kJngaNGGMKBAVnCo4LlQXIC1AGWhUvBi8U0gpkBIwH+gVmCcUE0haPBHgMHwedB9gNMwe7B\u002fsEnx04EpIGWGm6BLgErwO5BNELxgaaBFMP5wObBfcMRXStA88H2zR0BE0HfwbUBWwD7AO2CP4E0AY5A0kJ7QQ+BFUDHQS4CV4GfQMQDRgJVjNKBFQaPQTJA3YDPQS4A9QFpQMXBOMFlgYHBIgEyAPmBOUDvhc1BFMX0gbjCQsXvgMeCPQCeQiCBSYDFwbWAnEFgQNQDc0DnwbEArgCuAJtBqAISQXbAj4GiQdyAy4M5gPFBwUExwikAmMElBPhAqwMugL8AtQX0wN+HUYFbgUCBLEDvh22BZQIjgKSAkUD+gITBAkDgwkbHEUD2gJdBN4IXgQ+F\u002fcDBgzDCb4JZQNYHXkDPQO8DHkF\u002fxVLBBQJpwLNApgG2Q5eA84H6gatA\u002f4H2AiNAq4DbQYIBIgEIQ9gBIgezwdnBNkCZwhkAksDVQNGBnQcpW8EGpEFhwJHAqQCRAKWAmkI+QYqN2ULpC1DAtsGKAJABEYzsgflBtgCshZsA2ICZAeqAiICxQINBZkDlQNFBo4CnQXaCHACAA2DBVwCMQQXJpwCQAOrAjcEuwJjAxsCGQIQAjoE5gN4BVgDSwK+Ai4CkgNBA2oCjgPfA70EIwNBDPIGiAQuApYKSAvLCi8DmgM0DP4Bog0nC18Cpi78AbMIEhNJBKcQXgfdBxgCuwJGA4AE1QbLAaUkJBXNCpwC0gFCAsgCegIFFhwI7iQIBUQCOwX0AXUIagTtAegH\u002fgJaAvgDqQEFCJ0BUQbFAecCkAM8BQkE3wzoBKMB0wHGBXgGHQiyA3ADOxiRBN0B8AECA\u002fEBrgVvAuICjgaPBNYB\u002fRN5BiQEjwHnAu8KigaKAdYDDwynBZwL+QN7BP8GxAHfGahqfQGcBqkFKwpGAnwpHAhHA+wIegHJAYwRWgPgBboCtQJnBCVY3gJmARwMYgHgBrwCKwymBfIEtAGgAVoGxAjYAUACugHTAWQBMgJ6Eu8GIALRAbcBbgFhDeMIaAJtAZ8B+BOTBPcBPwLBAmoC+we\u002fATUgUg4JAokBBghFDHMB8QEQA10w2AHVCHYCSwJLAWMC6wLqFtwBEwkAAyoEFwTVArUMwwQfAngB1gFhA4gDbwK8AwcEnwH5W1UDiwHfOBgDXgEfAV8BWQJVAWgBsAGMEUkBkwGfAtkBVQGvATIBJwF3BqwDgQGvEiIIIlI9AQ4CHwo9AlgBUCRHAm0BywEOAUkBpQEbAa8BHQGmA+oELQYSAsYG1QPnAQQBmgUqAWEBjQVXASANbgEEAToGJBDcA3AljAH+AacDswjTAZcB9QJSAasDMwJYAfYAOgJAAS4WXgF2CrYBWAGaD+IBSh38ALMB9QBKAXYBMwL7AAgBpQEvAdwBfwFmBMc5bQGZK+gAVgE+AtYA0AAGAWkCkQFUAV8FFATkAAQBNQ3bAIgBfwMHARkBTAPkAB4BFgHAAQwKqwHXAHkBTwTiETgB3wD5ALME9AgqAScBigUBAvIBHwG\u002fAGMDHQG3AEMBuQBcAa4AXgQNAekNsgDXDL4APSnaAHwB9wLrAK8AtgD7AO8AVwnhAKADQQHNAJ4ArAL1ADoFAAFWAdsA0wC9ALkoyQCoAIwDmQDUAIcG6QDtAJIfigHFAIUAqgDIALoA7gJPASwBGwfYABQBAQvPAM4BGAGjAI8BVAHFBZsBtQDvALYBlAClAHsAfgMhAZkAGAHuAJ4AVwKWANkBegByBYgAxQB0AGQAuwD5AH8AYgC3AL8AegCZAM0AkQ+nAHUB7gCXAGYAMAK2ATYBRwH1AekA6gDhAI8ATgCRAY4AtABSALAALQl5A44AFAhNAOoAUQBVAGsAqgBDAFUAPQCPAGEAaQA7ADsASABAAE4AMwBZAFUAXwA4AGwAMgBrAI0CmAApADkAIgBDADgAGQAXACAAFAAOACEA"},"sizemode":"area","sizeref":50},"mode":"markers","opacity":0.7,"x":{"dtype":"i4","bdata":"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"},"y":{"dtype":"f8","bdata":"hetRuB7lQECamZmZmRlAQKRwPQrXYz9AmpmZmZkZP0BSuB6F6xE+QArXo3A9ijxAPQrXo3C9O0D2KFyPwrU7QK5H4XoUrjtAXI\u002fC9SicO0CamZmZmRk7QPYoXI\u002fCtTlAXI\u002fC9ShcOUDXo3A9Clc4QB+F61G4njdAcT0K16NwN0CamZmZmZk2QI\u002fC9ShcTzZAXI\u002fC9SicNUCF61G4HoU1QAAAAAAAgDVAZmZmZmZmNUBmZmZmZiY1QEjhehSuBzVAw\u002fUoXI\u002fCNEAAAAAAAMA0QI\u002fC9ShcDzRA9ihcj8L1M0CamZmZmZkzQI\u002fC9ShcjzNAzczMzMyMM0B7FK5H4XozQMP1KFyPAjNArkfhehTuMkDhehSuR+EyQFyPwvUo3DJAZmZmZmamMkAK16NwPYoyQAAAAAAAgDJArkfhehQuMkBcj8L1KBwyQOxRuB6F6zFAKVyPwvXoMUA9CtejcL0xQK5H4XoUrjFAUrgeheuRMUCF61G4HoUxQDMzMzMzczFAMzMzMzNzMUBxPQrXo3AxQK5H4XoUbjFArkfhehRuMUDsUbgehWsxQJqZmZmZWTFASOF6FK5HMUDhehSuRyExQB+F61G4HjFAuB6F61H4MEAfhetRuN4wQNejcD0K1zBAUrgehevRMEBI4XoUrscwQFK4HoXrkTBAzczMzMyMMEBxPQrXozAwQClcj8L1KDBAXI\u002fC9SgcMEDsUbgehesvQOxRuB6Fay9A7FG4HoVrL0AK16NwPQovQPYoXI\u002fC9S5AcT0K16PwLkA9CtejcL0uQLgehetRuC5AKVyPwvWoLkCamZmZmZkuQBSuR+F6lC5AhetRuB6FLkD2KFyPwnUuQGZmZmZmZi5A4XoUrkdhLkBI4XoUrkcuQMP1KFyPQi5AKVyPwvUoLkBSuB6F69EtQMP1KFyPwi1APQrXo3C9LUCkcD0K16MtQB+F61G4ni1A9ihcj8J1LUBxPQrXo3AtQOxRuB6Fay1AZmZmZmZmLUBcj8L1KFwtQFK4HoXrUS1APQrXo3A9LUBmZmZmZuYsQFK4HoXr0SxAUrgehevRLEBI4XoUrscsQLgehetRuCxArkfhehSuLECPwvUoXI8sQIXrUbgehSxAhetRuB6FLEDD9Shcj0IsQK5H4XoULixArkfhehQuLEApXI\u002fC9SgsQHE9Ctej8CtA4XoUrkfhK0CuR+F6FK4rQClcj8L1qCtAH4XrUbieK0CPwvUoXI8rQOxRuB6FaytAZmZmZmZmK0A9CtejcD0rQClcj8L1KCtAKVyPwvUoK0AfhetRuB4rQBSuR+F6FCtA4XoUrkfhKkDNzMzMzMwqQM3MzMzMzCpAw\u002fUoXI\u002fCKkDD9Shcj8IqQK5H4XoUripArkfhehSuKkCkcD0K16MqQJqZmZmZmSpACtejcD2KKkAzMzMzMzMqQK5H4XoULipApHA9CtcjKkAfhetRuB4qQBSuR+F6FCpAhetRuB4FKkB7FK5H4fopQPYoXI\u002fC9SlAcT0K16PwKUBxPQrXo\u002fApQOxRuB6F6ylAzczMzMzMKUDNzMzMzMwpQEjhehSuxylAw\u002fUoXI\u002fCKUA9CtejcL0pQClcj8L1qClApHA9CtejKUD2KFyPwnUpQGZmZmZmZilA16NwPQpXKUDXo3A9ClcpQMP1KFyPQilAuB6F61E4KUC4HoXrUTgpQK5H4XoULilAKVyPwvUoKUAfhetRuB4pQJqZmZmZGSlAmpmZmZkZKUCamZmZmRkpQHsUrkfh+ihA7FG4HoXrKEDXo3A9CtcoQClcj8L1qChAH4XrUbieKECamZmZmZkoQNejcD0KVyhAw\u002fUoXI9CKECuR+F6FC4oQK5H4XoULihAmpmZmZkZKEBxPQrXo\u002fAnQD0K16NwvSdArkfhehSuJ0CamZmZmZknQJqZmZmZmSdACtejcD2KJ0B7FK5H4XonQHsUrkfheidA7FG4HoVrJ0Bcj8L1KFwnQFyPwvUoXCdA9ihcj8L1JkBcj8L1KNwmQFyPwvUo3CZA16NwPQrXJkBSuB6F69EmQEjhehSuxyZAw\u002fUoXI\u002fCJkCuR+F6FK4mQK5H4XoUriZAhetRuB6FJkCF61G4HoUmQGZmZmZmZiZAZmZmZmZmJkDXo3A9ClcmQFK4HoXrUSZArkfhehQuJkCkcD0K1yMmQArXo3A9CiZAAAAAAAAAJkD2KFyPwvUlQGZmZmZm5iVAXI\u002fC9SjcJUDXo3A9CtclQFK4HoXr0SVApHA9CtejJUAUrkfhepQlQAAAAAAAgCVAexSuR+F6JUBcj8L1KFwlQNejcD0KVyVAzczMzMxMJUDD9Shcj0IlQD0K16NwPSVAKVyPwvUoJUCPwvUoXA8lQI\u002fC9ShcDyVAAAAAAAAAJUBxPQrXo\u002fAkQHE9Ctej8CRA4XoUrkfhJEDXo3A9CtckQNejcD0K1yRASOF6FK7HJEApXI\u002fC9agkQClcj8L1qCRAH4XrUbieJEAUrkfhepQkQIXrUbgehSRAAAAAAACAJEBmZmZmZmYkQMP1KFyPQiRAPQrXo3A9JEA9CtejcD0kQD0K16NwPSRAKVyPwvUoJECF61G4HgUkQHsUrkfh+iNA4XoUrkfhI0Bcj8L1KNwjQNejcD0K1yNAUrgehevRI0DD9Shcj8IjQK5H4XoUriNApHA9CtejI0CPwvUoXI8jQArXo3A9iiNAAAAAAACAI0D2KFyPwnUjQOxRuB6FayNA7FG4HoVrI0DsUbgehWsjQOF6FK5HYSNA16NwPQpXI0DNzMzMzEwjQEjhehSuRyNArkfhehQuI0CuR+F6FC4jQB+F61G4HiNAexSuR+H6IkD2KFyPwvUiQOxRuB6F6yJAzczMzMzMIkC4HoXrUbgiQK5H4XoUriJAj8L1KFyPIkDhehSuR2EiQEjhehSuRyJAPQrXo3A9IkAzMzMzMzMiQArXo3A9CiJAexSuR+H6IUB7FK5H4fohQOxRuB6F6yFAXI\u002fC9SjcIUBcj8L1KNwhQNejcD0K1yFAw\u002fUoXI\u002fCIUA9CtejcL0hQDMzMzMzsyFAmpmZmZmZIUAUrkfhepQhQArXo3A9iiFA4XoUrkdhIUDhehSuR2EhQM3MzMzMTCFAuB6F61E4IUApXI\u002fC9SghQKRwPQrXIyFAH4XrUbgeIUAUrkfhehQhQBSuR+F6FCFAj8L1KFwPIUCPwvUoXA8hQArXo3A9CiFAhetRuB4FIUB7FK5H4fogQHE9Ctej8CBA7FG4HoXrIEDsUbgehesgQGZmZmZm5iBAXI\u002fC9SjcIEDXo3A9CtcgQD0K16NwvSBAuB6F61G4IECuR+F6FK4gQB+F61G4niBAH4XrUbieIEAK16NwPYogQGZmZmZmZiBAUrgehetRIEDNzMzMzEwgQMP1KFyPQiBAPQrXo3A9IEApXI\u002fC9SggQKRwPQrXIyBAH4XrUbgeIEAfhetRuB4gQJqZmZmZGSBAFK5H4XoUIECF61G4HgUgQIXrUbgeBSBAhetRuB4FIEDsUbgehesfQOF6FK5H4R9Aw\u002fUoXI\u002fCH0C4HoXrUbgfQJqZmZmZmR9Aj8L1KFyPH0BmZmZmZmYfQFyPwvUoXB9ASOF6FK5HH0A9CtejcD0fQDMzMzMzMx9AMzMzMzMzH0D2KFyPwvUeQPYoXI\u002fC9R5A9ihcj8L1HkDhehSuR+EeQNejcD0K1x5AuB6F61G4HkB7FK5H4XoeQFK4HoXrUR5APQrXo3A9HkA9CtejcD0eQClcj8L1KB5AKVyPwvUoHkAAAAAAAAAeQAAAAAAAAB5A7FG4HoXrHUDNzMzMzMwdQMP1KFyPwh1Aw\u002fUoXI\u002fCHUC4HoXrUbgdQKRwPQrXox1AZmZmZmZmHUBSuB6F61EdQD0K16NwPR1APQrXo3A9HUAzMzMzMzMdQDMzMzMzMx1AKVyPwvUoHUAK16NwPQodQOxRuB6F6xxAzczMzMzMHEDD9Shcj8IcQIXrUbgehRxAcT0K16NwHEBxPQrXo3AcQFK4HoXrURxAUrgehetRHEAUrkfhehQcQBSuR+F6FBxAFK5H4XoUHEAUrkfhehQcQM3MzMzMzBtAzczMzMzMG0C4HoXrUbgbQJqZmZmZmRtAmpmZmZmZG0CF61G4HoUbQIXrUbgehRtAexSuR+F6G0B7FK5H4XobQGZmZmZmZhtAPQrXo3A9G0ApXI\u002fC9SgbQAAAAAAAABtA4XoUrkfhGkC4HoXrUbgaQK5H4XoUrhpAmpmZmZmZGkCF61G4HoUaQHE9CtejcBpAZmZmZmZmGkBcj8L1KFwaQEjhehSuRxpAPQrXo3A9GkA9CtejcD0aQB+F61G4HhpAFK5H4XoUGkAK16NwPQoaQArXo3A9ChpA7FG4HoXrGUDhehSuR+EZQNejcD0K1xlAzczMzMzMGUC4HoXrUbgZQLgehetRuBlApHA9CtejGUBxPQrXo3AZQFK4HoXrURlASOF6FK5HGUBI4XoUrkcZQB+F61G4HhlACtejcD0KGUDsUbgehesYQOxRuB6F6xhA16NwPQrXGEDNzMzMzMwYQKRwPQrXoxhAmpmZmZmZGECPwvUoXI8YQI\u002fC9ShcjxhAhetRuB6FGECF61G4HoUYQGZmZmZmZhhAUrgehetRGEBI4XoUrkcYQEjhehSuRxhACtejcD0KGEAK16NwPQoYQArXo3A9ChhAAAAAAAAAGEDXo3A9CtcXQM3MzMzMzBdAzczMzMzMF0C4HoXrUbgXQKRwPQrXoxdAmpmZmZmZF0BmZmZmZmYXQFyPwvUoXBdASOF6FK5HF0ApXI\u002fC9SgXQB+F61G4HhdAH4XrUbgeF0D2KFyPwvUWQOxRuB6F6xZAzczMzMzMFkDD9Shcj8IWQLgehetRuBZArkfhehSuFkCPwvUoXI8WQIXrUbgehRZAhetRuB6FFkB7FK5H4XoWQClcj8L1KBZACtejcD0KFkAAAAAAAAAWQPYoXI\u002fC9RVA9ihcj8L1FUDsUbgehesVQOF6FK5H4RVA16NwPQrXFUC4HoXrUbgVQLgehetRuBVArkfhehSuFUCamZmZmZkVQI\u002fC9ShcjxVAhetRuB6FFUB7FK5H4XoVQHE9CtejcBVAZmZmZmZmFUBmZmZmZmYVQD0K16NwPRVAMzMzMzMzFUApXI\u002fC9SgVQClcj8L1KBVAH4XrUbgeFUAfhetRuB4VQBSuR+F6FBVA9ihcj8L1FEDsUbgehesUQOF6FK5H4RRA4XoUrkfhFEDD9Shcj8IUQK5H4XoUrhRApHA9CtejFECPwvUoXI8UQHE9CtejcBRAXI\u002fC9ShcFEBSuB6F61EUQFK4HoXrURRAPQrXo3A9FEAzMzMzMzMUQB+F61G4HhRAH4XrUbgeFED2KFyPwvUTQPYoXI\u002fC9RNA16NwPQrXE0DNzMzMzMwTQK5H4XoUrhNApHA9CtejE0CPwvUoXI8TQIXrUbgehRNAhetRuB6FE0B7FK5H4XoTQHE9CtejcBNAXI\u002fC9ShcE0BI4XoUrkcTQClcj8L1KBNACtejcD0KE0AK16NwPQoTQAAAAAAAABNA9ihcj8L1EkD2KFyPwvUSQOxRuB6F6xJA7FG4HoXrEkDhehSuR+ESQM3MzMzMzBJAw\u002fUoXI\u002fCEkDD9Shcj8ISQK5H4XoUrhJApHA9CtejEkCkcD0K16MSQHE9CtejcBJAcT0K16NwEkA9CtejcD0SQBSuR+F6FBJAAAAAAAAAEkAAAAAAAAASQPYoXI\u002fC9RFA9ihcj8L1EUDsUbgehesRQOF6FK5H4RFAmpmZmZmZEUCF61G4HoURQIXrUbgehRFAexSuR+F6EUBmZmZmZmYRQFyPwvUoXBFAPQrXo3A9EUAzMzMzMzMRQDMzMzMzMxFAFK5H4XoUEUAAAAAAAAARQAAAAAAAABFA9ihcj8L1EEDXo3A9CtcQQLgehetRuBBAmpmZmZmZEECamZmZmZkQQI\u002fC9ShcjxBAcT0K16NwEEBSuB6F61EQQEjhehSuRxBAKVyPwvUoEEAfhetRuB4QQBSuR+F6FBBAFK5H4XoUEEAK16NwPQoQQOxRuB6F6w9A7FG4HoXrD0DXo3A9CtcPQMP1KFyPwg9Aw\u002fUoXI\u002fCD0CF61G4HoUPQHE9CtejcA9AXI\u002fC9ShcD0DhehSuR+EOQM3MzMzMzA5AuB6F61G4DkC4HoXrUbgOQHsUrkfheg5AexSuR+F6DkApXI\u002fC9SgOQAAAAAAAAA5A7FG4HoXrDUCF61G4HoUNQDMzMzMzMw1AH4XrUbgeDUAfhetRuB4NQOF6FK5H4QxAj8L1KFyPDEAAAAAAAAAMQIXrUbgehQtAhetRuB6FC0DhehSuR+EKQLgehetRuApApHA9CtejCkCkcD0K16MKQI\u002fC9ShcjwpAZmZmZmZmCkA9CtejcD0KQD0K16NwPQpAPQrXo3A9CkA9CtejcD0KQBSuR+F6FApAAAAAAAAACkBxPQrXo3AJQHE9CtejcAlAcT0K16NwCUAzMzMzMzMJQPYoXI\u002fC9QhAuB6F61G4CECPwvUoXI8IQGZmZmZmZghAPQrXo3A9CEApXI\u002fC9SgIQClcj8L1KAhAKVyPwvUoCEAAAAAAAAAIQOxRuB6F6wdA7FG4HoXrB0DD9Shcj8IHQMP1KFyPwgdAw\u002fUoXI\u002fCB0DD9Shcj8IHQK5H4XoUrgdAmpmZmZmZB0CF61G4HoUHQHE9CtejcAdAcT0K16NwB0BxPQrXo3AHQArXo3A9CgdAj8L1KFyPBkCPwvUoXI8GQGZmZmZmZgZAZmZmZmZmBkBmZmZmZmYGQFK4HoXrUQZAKVyPwvUoBkDD9Shcj8IFQMP1KFyPwgVAmpmZmZmZBUBcj8L1KFwFQPYoXI\u002fC9QRA9ihcj8L1BEDNzMzMzMwEQLgehetRuARApHA9CtejBEBmZmZmZmYEQFK4HoXrUQRAFK5H4XoUBEDsUbgehesDQNejcD0K1wNAw\u002fUoXI\u002fCA0DD9Shcj8IDQArXo3A9CgNA9ihcj8L1AkD2KFyPwvUCQOF6FK5H4QJAexSuR+F6AkBmZmZmZmYCQFK4HoXrUQJAUrgehetRAkA9CtejcD0CQD0K16NwPQJAFK5H4XoUAkDsUbgehesBQNejcD0K1wFAw\u002fUoXI\u002fCAUCuR+F6FK4BQHE9CtejcAFAcT0K16NwAUBcj8L1KFwBQOF6FK5H4QBA4XoUrkfhAECkcD0K16MAQFK4HoXrUQBAPQrXo3A9AEA9CtejcD0AQK5H4XoUrv8\u002fXI\u002fC9Shc\u002fz9cj8L1KFz\u002fPwrXo3A9Cv8\u002f4XoUrkfh\u002fj89CtejcD3+P+xRuB6F6\u002f0\u002fw\u002fUoXI\u002fC\u002fT9I4XoUrkf9P0jhehSuR\u002f0\u002f9ihcj8L1\u002fD\u002fNzMzMzMz8P6RwPQrXo\u002fw\u002fKVyPwvUo\u002fD\u002fXo3A9Ctf7P65H4XoUrvs\u002fCtejcD0K+z+4HoXrUbj6P2ZmZmZmZvo\u002fZmZmZmZm+j\u002fsUbgehev5P8P1KFyPwvk\u002fmpmZmZmZ+T\u002fNzMzMzMz4P6RwPQrXo\u002fg\u002fexSuR+F6+D97FK5H4Xr4P1K4HoXrUfg\u002fKVyPwvUo+D+uR+F6FK73P65H4XoUrvc\u002fXI\u002fC9Shc9z8zMzMzMzP3PwrXo3A9Cvc\u002f4XoUrkfh9j+4HoXrUbj2P2ZmZmZmZvY\u002fFK5H4XoU9j+amZmZmZn1P0jhehSuR\u002fU\u002f9ihcj8L19D97FK5H4Xr0P1K4HoXrUfQ\u002fAAAAAAAA9D+4HoXrUbjyPxSuR+F6FPI\u002f7FG4HoXr8T\u002fD9Shcj8LxP8P1KFyPwvE\u002fSOF6FK5H8T8fhetRuB7xPylcj8L1KPA\u002fFK5H4XoU7j8UrkfhehTuPzMzMzMzM+s\u002fj8L1KFyP6j+PwvUoXI\u002fqP4\u002fC9Shcj+o\u002fPQrXo3A96j\u002fsUbgehevpP0jhehSuR+k\u002fUrgehetR6D8AAAAAAADoP65H4XoUruc\u002frkfhehSu5z+4HoXrUbjmP8P1KFyPwuU\u002fhetRuB6F4z89CtejcD3iP1yPwvUoXN8\u002fzczMzMzM3D\u002fhehSuR+HaP5qZmZmZmdk\u002fw\u002fUoXI\u002fC1T+4HoXrUbjOP5qZmZmZmck\u002f"},"type":"scatter"}],                        {"template":{"layout":{"paper_bgcolor":"white","plot_bgcolor":"white","xaxis":{"showgrid":false,"zeroline":false},"yaxis":{"showgrid":false,"zeroline":false}}},"shapes":[{"line":{"color":"grey","dash":"dash"},"type":"line","x0":24259.644090305446,"x1":24259.644090305446,"xref":"x","y0":0,"y1":1,"yref":"y domain"},{"line":{"color":"grey","dash":"dash"},"type":"line","x0":0,"x1":1,"xref":"x domain","y0":8.241806108897743,"y1":8.241806108897743,"yref":"y"}],"annotations":[{"showarrow":false,"text":"\u5e73\u5747\u6d4f\u89c8\u91cf: 24259.6","x":24259.644090305446,"xanchor":"right","xref":"x","y":0,"yanchor":"bottom","yref":"y domain"},{"showarrow":false,"text":"\u5e73\u5747\u8f6c\u5316\u7387: 8.2","x":0,"xanchor":"left","xref":"x domain","y":8.241806108897743,"yanchor":"top","yref":"y"}],"title":{"text":"\u003cb\u003e\u5546\u54c1\u7c7b\u76ee\u8c61\u9650\u56fe\u003c\u002fb\u003e"}},                        {"responsive": true}                    ).then(function(){
+
+var gd = document.getElementById('a85570cb-44df-4ea2-bd58-c5e641893b23');
 var x = new MutationObserver(function (mutations, observer) {{
         var display = window.getComputedStyle(gd).display;
         if (!display || display === 'none') {{
@@ -692,35 +694,35 @@ _.close()
 
 fig = go.Figure(data=[
     go.Scatter(
-        x=df[&#x27;独立浏览次数&#x27;], 
-        y=df[&#x27;浏览转购买率&#x27;],
-        mode=&#x27;markers&#x27;,
+        x=df['独立浏览次数'],
+        y=df['浏览转购买率'],
+        mode='markers',
         opacity = 0.7,
-        marker=dict(size=df[&#x27;独立购买次数&#x27;],sizemode=&#x27;area&#x27;,sizeref=1,color=df[&#x27;独立购买次数&#x27;], coloraxis=&quot;coloraxis&quot;)),
+        marker=dict(size=df['独立购买次数'],sizemode='area',sizeref=1,color=df['独立购买次数'], coloraxis=&quot;coloraxis&quot;)),
 ])
 
-mean_x = df[&#x27;独立浏览次数&#x27;].mean()
-mean_y = df[&#x27;浏览转购买率&#x27;].mean()
+mean_x = df['独立浏览次数'].mean()
+mean_y = df['浏览转购买率'].mean()
 
 fig.add_vline(
-    x=mean_x, 
-    line_dash=&quot;dash&quot;, 
-    line_color=&quot;grey&quot;, 
+    x=mean_x,
+    line_dash=&quot;dash&quot;,
+    line_color=&quot;grey&quot;,
     annotation_text=f&quot;平均浏览量: {mean_x:.1f}&quot;, # 参考线旁的文字说明
     annotation_position=&quot;bottom left&quot;
 )
 fig.add_hline(
-    y=mean_y, 
-    line_dash=&quot;dash&quot;, 
-    line_color=&quot;grey&quot;, 
+    y=mean_y,
+    line_dash=&quot;dash&quot;,
+    line_color=&quot;grey&quot;,
     annotation_text=f&quot;平均转化率: {mean_y:.1f}&quot;, # 参考线旁的文字说明
     annotation_position=&quot;bottom left&quot;
 )
 
-fig.update_layout(title=&#x27;&lt;b&gt;商品象限图&lt;/b&gt;&#x27;)
-fig.show()</code></pre></details><section class="cell-output chart-output"><div style="height:525px; width:100%;">            <script>if (window.MathJax && window.MathJax.Hub && window.MathJax.Hub.Config) {window.MathJax.Hub.Config({SVG: {font: "STIX-Web"}});}</script>                    <div id="33da289c-9740-4240-b041-3e59b3a90f61" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("33da289c-9740-4240-b041-3e59b3a90f61")) {                    Plotly.newPlot(                        "33da289c-9740-4240-b041-3e59b3a90f61",                        [{"marker":{"color":{"dtype":"i2","bdata":"cgInAmYD1wEbATcBRQHNAUcBzwDhAKkAjADZAJ8ApADdAJUAiQGaAH0AbwCDAIAAawBoANYAUQBeAMUAWABpAEkAUwBSAFwASABjAEAAhwBIAJgARwBOAC8ANgAwAEIAewA0ADoALABYADMAMQAzADEAMQBBACcASwAoADAANAAzACYAXAA1ACcAWwAtAC0AIgB7ADcAHQA+AC0AWwAbACAAGAA+ABkAHQAhABsAGgAfABcANAAYABYAFAAXABUAFAAXADgAFwASABEAFAAPABcAFQAQABUADQANAA4AJwAOABQADgAKAAgADQAHAAcABgAIAAUABwADAAIAAQABAAEAAQAAAAAAAAA="},"coloraxis":"coloraxis","size":{"dtype":"i2","bdata":"cgInAmYD1wEbATcBRQHNAUcBzwDhAKkAjADZAJ8ApADdAJUAiQGaAH0AbwCDAIAAawBoANYAUQBeAMUAWABpAEkAUwBSAFwASABjAEAAhwBIAJgARwBOAC8ANgAwAEIAewA0ADoALABYADMAMQAzADEAMQBBACcASwAoADAANAAzACYAXAA1ACcAWwAtAC0AIgB7ADcAHQA+AC0AWwAbACAAGAA+ABkAHQAhABsAGgAfABcANAAYABYAFAAXABUAFAAXADgAFwASABEAFAAPABcAFQAQABUADQANAA4AJwAOABQADgAKAAgADQAHAAcABgAIAAUABwADAAIAAQABAAEAAQAAAAAAAAA="},"sizemode":"area","sizeref":1},"mode":"markers","opacity":0.7,"x":{"dtype":"i2","bdata":"zxuFG9ovfBv6FHUcbh8tLVog1hb3GLgTChSRH0EYPBl8IvEX1D90G2UXFxYWG0Yb7BZ3F5gyXhRGGYc1zRhxHm8WnhrqGq8f6RnoI4QXOjLoGtc7ghxGH7cTlRZiFMIcGzXGFiMaqRP3J7YXlheZGOsXkRhLIQoU+ybZFD0Z3xuLG0YVLDVwHuQX+jcCHDkcvRW7UCEmNBS8LKYgC0MXFJgZuBN\u002fNFIVaxmTHC4YBxghHU0VnjDeFmwVPBSvF5IVdhSVF0A7qRinE4kVvBp7FDkgWh6nFyMhfRQ5FU4XPUGRGP0nXRudFIMU7CcHF\u002fQY2RQTHyEVgjMtG\u002fgXPxb\u002fFTYd\u002fSCyMNwwXhc="},"y":{"dtype":"f8","bdata":"FK5H4XqUIUBI4XoUrkcfQGZmZmZmZhxAw\u002fUoXI\u002fCGkAUrkfhehQVQBSuR+F6FBFAKVyPwvUoEEDsUbgehesPQJqZmZmZmQ9AUrgehetRDEApXI\u002fC9SgMQM3MzMzMzApA16NwPQrXBUCF61G4HoUFQHsUrkfhegRAUrgehetRBEAAAAAAAAAEQHE9CtejcANASOF6FK5HA0CF61G4HoUBQLgehetRuABAXI\u002fC9Shc\u002fz89CtejcD3+P0jhehSuR\u002f0\u002fH4XrUbge\u002fT+uR+F6FK77P2ZmZmZmZvo\u002fzczMzMzM+D8zMzMzMzP3PwrXo3A9Cvc\u002fPQrXo3A99j+amZmZmZn1P1K4HoXrUfQ\u002fhetRuB6F8z8K16NwPQrzPxSuR+F6FPI\u002fcT0K16Nw8T9I4XoUrkfxP\u002fYoXI\u002fC9fA\u002fzczMzMzM8D\u002fNzMzMzMzwP65H4XoUru8\u002fCtejcD0K7z8K16NwPQrvP8P1KFyPwu0\u002fw\u002fUoXI\u002fC7T9xPQrXo3DtP83MzMzMzOw\u002fzczMzMzM7D97FK5H4XrsP9ejcD0K1+s\u002f16NwPQrX6z+F61G4HoXrP+F6FK5H4eo\u002f7FG4HoXr6T\u002fsUbgehevpP5qZmZmZmek\u002f9ihcj8L16D9SuB6F61HoP1K4HoXrUeg\u002fAAAAAAAA6D8AAAAAAADoP65H4XoUruc\u002fXI\u002fC9Shc5z8K16NwPQrnP2ZmZmZmZuY\u002fw\u002fUoXI\u002fC5T\u002fD9Shcj8LlP3sUrkfheuQ\u002fexSuR+F65D8pXI\u002fC9SjkP9ejcD0K1+M\u002fhetRuB6F4z8zMzMzMzPjP+xRuB6F6+E\u002f7FG4HoXr4T9I4XoUrkfhP0jhehSuR+E\u002f9ihcj8L14D+kcD0K16PgP1yPwvUoXN8\u002fuB6F61G43j9xPQrXo3DdP3E9CtejcN0\u002fzczMzMzM3D\u002fNzMzMzMzcPylcj8L1KNw\u002f4XoUrkfh2j\u002fhehSuR+HaP+F6FK5H4do\u002f4XoUrkfh2j89CtejcD3aP5qZmZmZmdk\u002f9ihcj8L12D9SuB6F61HYP1K4HoXrUdg\u002fUrgehetR2D9SuB6F61HYP65H4XoUrtc\u002fCtejcD0K1z8K16NwPQrXP9ejcD0K19M\u002fj8L1KFyP0j+PwvUoXI\u002fSP+xRuB6F69E\u002fSOF6FK5H0T+kcD0K16PQPwAAAAAAANA\u002fAAAAAAAA0D+4HoXrUbjOP3E9CtejcM0\u002fcT0K16NwzT8pXI\u002fC9SjMP5qZmZmZmck\u002fmpmZmZmZyT9SuB6F61HIPzMzMzMzM8M\u002fpHA9CtejwD+4HoXrUbi+Pylcj8L1KLw\u002fKVyPwvUovD+amZmZmZm5PwrXo3A9Crc\u002fmpmZmZmZqT97FK5H4XqkP7gehetRuJ4\u002fexSuR+F6lD97FK5H4XqUP3sUrkfheoQ\u002fexSuR+F6hD8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="},"type":"scatter"}],                        {"template":{"layout":{"paper_bgcolor":"white","plot_bgcolor":"white","xaxis":{"showgrid":false,"zeroline":false},"yaxis":{"showgrid":false,"zeroline":false}}},"shapes":[{"line":{"color":"grey","dash":"dash"},"type":"line","x0":7703.187969924812,"x1":7703.187969924812,"xref":"x","y0":0,"y1":1,"yref":"y domain"},{"line":{"color":"grey","dash":"dash"},"type":"line","x0":0,"x1":1,"xref":"x domain","y0":1.168345864661654,"y1":1.168345864661654,"yref":"y"}],"annotations":[{"showarrow":false,"text":"\u5e73\u5747\u6d4f\u89c8\u91cf: 7703.2","x":7703.187969924812,"xanchor":"right","xref":"x","y":0,"yanchor":"bottom","yref":"y domain"},{"showarrow":false,"text":"\u5e73\u5747\u8f6c\u5316\u7387: 1.2","x":0,"xanchor":"left","xref":"x domain","y":1.168345864661654,"yanchor":"top","yref":"y"}],"title":{"text":"\u003cb\u003e\u5546\u54c1\u8c61\u9650\u56fe\u003c\u002fb\u003e"}},                        {"responsive": true}                    ).then(function(){
-                            
-var gd = document.getElementById('33da289c-9740-4240-b041-3e59b3a90f61');
+fig.update_layout(title='&lt;b&gt;商品象限图&lt;/b&gt;')
+fig.show()</code></pre></details><section class="cell-output chart-output"><div style="height:525px; width:100%;">                                <div id="9cf28cc3-275e-4645-a0a3-0f8dcd25d042" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("9cf28cc3-275e-4645-a0a3-0f8dcd25d042")) {                    Plotly.newPlot(                        "9cf28cc3-275e-4645-a0a3-0f8dcd25d042",                        [{"marker":{"color":{"dtype":"i2","bdata":"cgInAmYD1wEbATcBRQHNAUcBzwDhAKkAjADZAJ8ApADdAJUAiQGaAH0AbwCDAIAAawBoANYAUQBeAMUAWABpAEkAUwBSAFwASABjAEAASACHAJgATgBHADYALwAwAHsAQgA0ACwAOgBYADMAMwAxADEAMQBBACcAKABLADAANAAzACYAXAA1ACcAWwAtAC0AIgB7ADcAHQAtAD4AWwAbACAAGAAZAD4AHQAhABsAFwAaAB8ANAAYABYAFAAUABcAFQAXADgAEgAXABEADwAUABcAFQAQABUADQANAA4AJwAOAA4AFAAKAAgADQAHAAYABwAIAAUABwADAAIAAQABAAEAAQAAAAAAAAA="},"coloraxis":"coloraxis","size":{"dtype":"i2","bdata":"cgInAmYD1wEbATcBRQHNAUcBzwDhAKkAjADZAJ8ApADdAJUAiQGaAH0AbwCDAIAAawBoANYAUQBeAMUAWABpAEkAUwBSAFwASABjAEAASACHAJgATgBHADYALwAwAHsAQgA0ACwAOgBYADMAMwAxADEAMQBBACcAKABLADAANAAzACYAXAA1ACcAWwAtAC0AIgB7ADcAHQAtAD4AWwAbACAAGAAZAD4AHQAhABsAFwAaAB8ANAAYABYAFAAUABcAFQAXADgAEgAXABEADwAUABcAFQAQABUADQANAA4AJwAOAA4AFAAKAAgADQAHAAYABwAIAAUABwADAAIAAQABAAEAAQAAAAAAAAA="},"sizemode":"area","sizeref":1},"mode":"markers","opacity":0.7,"x":{"dtype":"i2","bdata":"zxuFG9ovfBv6FHUcbh8tLVog1hb3GLgTChSRH0EYPBl8IvEX1D90G2UXFxYWG0Yb7BZ3F5gyXhRGGYc1zRhxHm8WnhrqGq8f6RnoI4QX6Bo6Mtc7Rh+CHJUWtxNiFBs1whzGFqkTIxr3J7YXmRiWF+sXkRhLIQoU2RT7Jj0Z3xuLG0YVLDVwHuQX+jcCHDkcvRW7UCEmNBSmILwsC0MXFJgZuBNSFX80axmTHC4YTRUHGCEdnjDeFmwVPBR2FK8XkhWVF0A7pxOpGIkVexS8GjkgWh6nFyMhfRQ5FU4XPUGRGF0b\u002fSedFIMU7CcHF9kU9BgTHyEVgjMtG\u002fgX\u002fxU\u002fFv0gNh3cMF4XsjA="},"y":{"dtype":"f8","bdata":"FK5H4XqUIUBI4XoUrkcfQGZmZmZmZhxAw\u002fUoXI\u002fCGkAUrkfhehQVQBSuR+F6FBFAKVyPwvUoEEDsUbgehesPQJqZmZmZmQ9AUrgehetRDEApXI\u002fC9SgMQM3MzMzMzApA16NwPQrXBUCF61G4HoUFQHsUrkfhegRAUrgehetRBEAAAAAAAAAEQHE9CtejcANASOF6FK5HA0CF61G4HoUBQLgehetRuABAXI\u002fC9Shc\u002fz89CtejcD3+P0jhehSuR\u002f0\u002fH4XrUbge\u002fT+uR+F6FK77P2ZmZmZmZvo\u002fzczMzMzM+D8zMzMzMzP3PwrXo3A9Cvc\u002fPQrXo3A99j+amZmZmZn1P1K4HoXrUfQ\u002fhetRuB6F8z8K16NwPQrzPxSuR+F6FPI\u002fcT0K16Nw8T9I4XoUrkfxP\u002fYoXI\u002fC9fA\u002fzczMzMzM8D\u002fNzMzMzMzwP65H4XoUru8\u002fCtejcD0K7z8K16NwPQrvP8P1KFyPwu0\u002fw\u002fUoXI\u002fC7T9xPQrXo3DtP83MzMzMzOw\u002fzczMzMzM7D97FK5H4XrsP9ejcD0K1+s\u002f16NwPQrX6z+F61G4HoXrP+F6FK5H4eo\u002f7FG4HoXr6T\u002fsUbgehevpP5qZmZmZmek\u002f9ihcj8L16D9SuB6F61HoP1K4HoXrUeg\u002fAAAAAAAA6D8AAAAAAADoP65H4XoUruc\u002fXI\u002fC9Shc5z8K16NwPQrnP2ZmZmZmZuY\u002fw\u002fUoXI\u002fC5T\u002fD9Shcj8LlP3sUrkfheuQ\u002fexSuR+F65D8pXI\u002fC9SjkP9ejcD0K1+M\u002fhetRuB6F4z8zMzMzMzPjP+xRuB6F6+E\u002f7FG4HoXr4T9I4XoUrkfhP0jhehSuR+E\u002f9ihcj8L14D+kcD0K16PgP1yPwvUoXN8\u002fuB6F61G43j9xPQrXo3DdP3E9CtejcN0\u002fzczMzMzM3D\u002fNzMzMzMzcPylcj8L1KNw\u002f4XoUrkfh2j\u002fhehSuR+HaP+F6FK5H4do\u002f4XoUrkfh2j89CtejcD3aP5qZmZmZmdk\u002f9ihcj8L12D9SuB6F61HYP1K4HoXrUdg\u002fUrgehetR2D9SuB6F61HYP65H4XoUrtc\u002fCtejcD0K1z8K16NwPQrXP9ejcD0K19M\u002fj8L1KFyP0j+PwvUoXI\u002fSP+xRuB6F69E\u002fSOF6FK5H0T+kcD0K16PQPwAAAAAAANA\u002fAAAAAAAA0D+4HoXrUbjOP3E9CtejcM0\u002fcT0K16NwzT8pXI\u002fC9SjMP5qZmZmZmck\u002fmpmZmZmZyT9SuB6F61HIPzMzMzMzM8M\u002fpHA9CtejwD+4HoXrUbi+Pylcj8L1KLw\u002fKVyPwvUovD+amZmZmZm5PwrXo3A9Crc\u002fmpmZmZmZqT97FK5H4XqkP7gehetRuJ4\u002fexSuR+F6lD97FK5H4XqUP3sUrkfheoQ\u002fexSuR+F6hD8AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="},"type":"scatter"}],                        {"template":{"layout":{"paper_bgcolor":"white","plot_bgcolor":"white","xaxis":{"showgrid":false,"zeroline":false},"yaxis":{"showgrid":false,"zeroline":false}}},"shapes":[{"line":{"color":"grey","dash":"dash"},"type":"line","x0":7703.187969924812,"x1":7703.187969924812,"xref":"x","y0":0,"y1":1,"yref":"y domain"},{"line":{"color":"grey","dash":"dash"},"type":"line","x0":0,"x1":1,"xref":"x domain","y0":1.168345864661654,"y1":1.168345864661654,"yref":"y"}],"annotations":[{"showarrow":false,"text":"\u5e73\u5747\u6d4f\u89c8\u91cf: 7703.2","x":7703.187969924812,"xanchor":"right","xref":"x","y":0,"yanchor":"bottom","yref":"y domain"},{"showarrow":false,"text":"\u5e73\u5747\u8f6c\u5316\u7387: 1.2","x":0,"xanchor":"left","xref":"x domain","y":1.168345864661654,"yanchor":"top","yref":"y"}],"title":{"text":"\u003cb\u003e\u5546\u54c1\u8c61\u9650\u56fe\u003c\u002fb\u003e"}},                        {"responsive": true}                    ).then(function(){
+
+var gd = document.getElementById('9cf28cc3-275e-4645-a0a3-0f8dcd25d042');
 var x = new MutationObserver(function (mutations, observer) {{
         var display = window.getComputedStyle(gd).display;
         if (!display || display === 'none') {{
@@ -742,18 +744,18 @@ if (outputEl) {{
     x.observe(outputEl, {childList: true});
 }}
 
-                        })                };            </script>        </div></section><section class="markdown"><p>从商品分布看，平台商品可划分为滞销型、潜力型、流量型和明星型。整体上，大多数商品集中在“低浏览、低转化”区域，说明平台存在较明显的长尾效应；真正兼具高流量与高转化的明星商品数量较少。<br></p><p>其中，潜力型商品转化率较高但曝光不足，是最值得优先投入的增长对象，可通过增加推荐位、搜索权重及活动曝光快速验证放量潜力，并与高转化商品进行组合推荐，推动潜力型商品向明星型商品转化；流量型商品浏览量高但转化偏低，应重点优化价格、详情页、评价及促销机制，增加转化率；明星型商品应保障库存和曝光，进一步发挥引流与成交作用，维持其核心竞争力；对于大量滞销型商品，建议减少无效流量投入，定期清理低效SKU。<br></p><p>总体而言，平台资源配置应从“平均分配”转向商品分层运营，优先扶持潜力商品、优化流量商品，并利用多中明星商品带动整体GMV增长。<br></p></section><section class="markdown"><h1>用户价值分析</h1></section><section class="markdown"><p>当前数据包含用户、商品、行为类型和互动时间，但缺少订单金额，因此不能完整构建包含M（Money）的传统RFM模型。<br> 针对此，本项目使用用户在样本期内发生互动的不同商品数、活跃天数和购买行为次数作为特征，通过K-Means进行探索性分群。其中，活跃天数定义为用户在样本期内发生过至少一次行为的不同自然日数量。<br> 分群结果反映的是这9天内的行为差异，不等同于用户的长期价值。<br></p></section><details class="code"><summary>Python 代码</summary><pre><code class="language-python">#创建新视图
+                        })                };            </script>        </div></section><section class="markdown"><p>从商品分布看，平台商品可划分为滞销型、潜力型、流量型和明星型。整体上，大多数商品集中在“低浏览、低转化”区域，说明平台存在较明显的长尾效应；真正兼具高流量与高转化的明星商品数量较少。<br></p><p>其中，潜力型商品转化率较高但曝光不足，是最值得优先投入的增长对象，可通过增加推荐位、搜索权重及活动曝光快速验证放量潜力，并与高转化商品进行组合推荐，推动潜力型商品向明星型商品转化；流量型商品浏览量高但转化偏低，应重点优化价格、详情页、评价及促销机制，增加转化率；明星型商品应保障库存和曝光，进一步发挥引流与成交作用，维持其核心竞争力；对于大量滞销型商品，建议减少无效流量投入，定期清理低效SKU。<br></p><p>总体而言，平台资源配置应从“平均分配”转向商品分层运营，优先扶持潜力商品、优化流量商品，并利用多中明星商品带动GMV增长。<br></p></section><section class="markdown"><h1>用户价值分析</h1></section><section class="markdown"><p>当前数据包含用户、商品、行为类型和互动时间，但缺少订单金额，因此不能完整构建包含M（Money）的传统RFM模型。<br> 针对此，本项目使用用户在样本期内发生互动的不同商品数、活跃天数和购买行为次数作为特征，通过K-Means进行探索性分群。其中，活跃天数定义为用户在样本期内发生过至少一次行为的不同自然日数量。<br> 分群结果反映的是这9天内的行为差异，不等同于用户的长期价值。<br></p></section><details class="code"><summary>Python 代码</summary><pre><code class="language-python">#创建新视图
 _ = duckdb.connect(db)
 _.execute(&quot;&quot;&quot;
-CREATE OR REPLACE VIEW active_user AS 
-SELECT 
+CREATE OR REPLACE VIEW active_user AS
+SELECT
     user_id,
     count(1) AS total_actions,
     count(DISTINCT good_id) AS unique_goods_browsed,
-    count(CASE WHEN act=&#x27;buy&#x27; THEN 1 END) AS total_buy,
+    count(CASE WHEN act='buy' THEN 1 END) AS total_buy,
     count(
         DISTINCT CAST(
-            to_timestamp(ts) AT TIME ZONE &#x27;Asia/Shanghai&#x27; AS DATE
+            to_timestamp(ts) AT TIME ZONE 'Asia/Shanghai' AS DATE
         )
     ) AS active_days
 FROM Cleaned
@@ -772,7 +774,7 @@ FROM active_user
 _.close()</code></pre></details><details class="code"><summary>Python 代码</summary><pre><code class="language-python">#标准化聚类特征，并使用肘部法评估聚类数量
 df = df.fillna(0)
 
-feature_columns = [&#x27;浏览商品数&#x27;, &#x27;活跃天数&#x27;, &#x27;总购买次数&#x27;]
+feature_columns = ['浏览商品数', '活跃天数', '总购买次数']
 scaler = StandardScaler()
 X = scaler.fit_transform(df[feature_columns])
 
@@ -787,8 +789,8 @@ for k in k_values:
     elbow_model = KMeans(
         n_clusters=k,
         random_state=50,
-        n_init=&#x27;auto&#x27;,
-        init=&#x27;k-means++&#x27;
+        n_init='auto',
+        init='k-means++'
     )
     elbow_model.fit(X_elbow)
     inertias.append(elbow_model.inertia_)
@@ -797,31 +799,31 @@ elbow_fig = go.Figure(
     data=go.Scatter(
         x=k_values,
         y=inertias,
-        mode=&#x27;lines+markers&#x27;,
-        name=&#x27;SSE&#x27;
+        mode='lines+markers',
+        name='SSE'
     )
 )
 elbow_fig.add_vline(
     x=3,
-    line_dash=&#x27;dash&#x27;,
-    line_color=&#x27;grey&#x27;,
-    annotation_text=&#x27;选择 K=3&#x27;,
-    annotation_position=&#x27;top right&#x27;
+    line_dash='dash',
+    line_color='grey',
+    annotation_text='选择 K=3',
+    annotation_position='top right'
 )
 elbow_fig.update_layout(
-    title=&#x27;&lt;b&gt;K-Means肘部法&lt;/b&gt;&#x27;,
-    xaxis_title=&#x27;聚类数量 K&#x27;,
-    yaxis_title=&#x27;SSE&#x27;,
-    plot_bgcolor=&#x27;white&#x27;,
-    paper_bgcolor=&#x27;white&#x27;,
-    xaxis=dict(tickmode=&#x27;linear&#x27;, tick0=1, dtick=1)
+    title='&lt;b&gt;K-Means肘部法&lt;/b&gt;',
+    xaxis_title='聚类数量 K',
+    yaxis_title='SSE',
+    plot_bgcolor='white',
+    paper_bgcolor='white',
+    xaxis=dict(tickmode='linear', tick0=1, dtick=1)
 )
 elbow_fig.update_xaxes(showgrid=False, zeroline=False)
 elbow_fig.update_yaxes(showgrid=False, zeroline=False)
 elbow_fig.show()
-</code></pre></details><section class="cell-output chart-output"><div style="height:525px; width:100%;">            <script>if (window.MathJax && window.MathJax.Hub && window.MathJax.Hub.Config) {window.MathJax.Hub.Config({SVG: {font: "STIX-Web"}});}</script>                    <div id="556989e0-e3ea-4447-90b8-0dda012b5567" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("556989e0-e3ea-4447-90b8-0dda012b5567")) {                    Plotly.newPlot(                        "556989e0-e3ea-4447-90b8-0dda012b5567",                        [{"mode":"lines+markers","name":"SSE","x":[1,2,3,4,5,6,7,8,9,10],"y":[309402.2427625448,199897.61231863155,153264.79458463687,118806.54136832413,104190.6708080509,95184.13531666818,87515.00679827084,80863.41795906278,68999.19754820928,66932.31227878091],"type":"scatter"}],                        {"template":{"layout":{"paper_bgcolor":"white","plot_bgcolor":"white","xaxis":{"showgrid":false,"zeroline":false},"yaxis":{"showgrid":false,"zeroline":false}}},"shapes":[{"line":{"color":"grey","dash":"dash"},"type":"line","x0":3,"x1":3,"xref":"x","y0":0,"y1":1,"yref":"y domain"}],"annotations":[{"showarrow":false,"text":"\u9009\u62e9 K=3","x":3,"xanchor":"left","xref":"x","y":1,"yanchor":"top","yref":"y domain"}],"xaxis":{"title":{"text":"\u805a\u7c7b\u6570\u91cf K"},"tickmode":"linear","tick0":1,"dtick":1,"showgrid":false,"zeroline":false},"title":{"text":"\u003cb\u003eK-Means\u8098\u90e8\u6cd5\u003c\u002fb\u003e"},"yaxis":{"title":{"text":"SSE"},"showgrid":false,"zeroline":false},"plot_bgcolor":"white","paper_bgcolor":"white"},                        {"responsive": true}                    ).then(function(){
-                            
-var gd = document.getElementById('556989e0-e3ea-4447-90b8-0dda012b5567');
+</code></pre></details><section class="cell-output chart-output"><div style="height:525px; width:100%;">                                <div id="296b211c-d0e2-4210-ac3f-467920e2af47" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("296b211c-d0e2-4210-ac3f-467920e2af47")) {                    Plotly.newPlot(                        "296b211c-d0e2-4210-ac3f-467920e2af47",                        [{"mode":"lines+markers","name":"SSE","x":[1,2,3,4,5,6,7,8,9,10],"y":[295777.81021762325,186128.06247615162,139664.1286112606,106282.05303340644,93037.67501848468,80535.021837067,74443.84835799807,65385.077130928534,59968.97012788994,56487.64620761225],"type":"scatter"}],                        {"template":{"layout":{"paper_bgcolor":"white","plot_bgcolor":"white","xaxis":{"showgrid":false,"zeroline":false},"yaxis":{"showgrid":false,"zeroline":false}}},"shapes":[{"line":{"color":"grey","dash":"dash"},"type":"line","x0":3,"x1":3,"xref":"x","y0":0,"y1":1,"yref":"y domain"}],"annotations":[{"showarrow":false,"text":"\u9009\u62e9 K=3","x":3,"xanchor":"left","xref":"x","y":1,"yanchor":"top","yref":"y domain"}],"xaxis":{"title":{"text":"\u805a\u7c7b\u6570\u91cf K"},"tickmode":"linear","tick0":1,"dtick":1,"showgrid":false,"zeroline":false},"title":{"text":"\u003cb\u003eK-Means\u8098\u90e8\u6cd5\u003c\u002fb\u003e"},"yaxis":{"title":{"text":"SSE"},"showgrid":false,"zeroline":false},"plot_bgcolor":"white","paper_bgcolor":"white"},                        {"responsive": true}                    ).then(function(){
+
+var gd = document.getElementById('296b211c-d0e2-4210-ac3f-467920e2af47');
 var x = new MutationObserver(function (mutations, observer) {{
         var display = window.getComputedStyle(gd).display;
         if (!display || display === 'none') {{
@@ -848,50 +850,50 @@ if (outputEl) {{
 kmeans = KMeans(
     n_clusters=3,
     random_state=50,
-    n_init=&#x27;auto&#x27;,
-    init=&#x27;k-means++&#x27;
+    n_init='auto',
+    init='k-means++'
 )
-df[&#x27;cluster&#x27;] = kmeans.fit_predict(X)
+df['cluster'] = kmeans.fit_predict(X)
 
-cluster_summary = df.groupby(&#x27;cluster&#x27;)[feature_columns].mean()
+cluster_summary = df.groupby('cluster')[feature_columns].mean()
 print(cluster_summary)
-print(df[&#x27;cluster&#x27;].value_counts())</code></pre></details><section class="cell-output output-fence" aria-label="Notebook 输出"><div class="fence-label">输出</div><pre><code class="language-text">              浏览商品数      活跃天数     总购买次数
-cluster                                
-0         36.183154  5.071376  1.148749
-1        173.621295  8.474798  5.116969
-2         70.883512  7.946620  1.539283
+print(df['cluster'].value_counts())</code></pre></details><section class="cell-output output-fence" aria-label="Notebook 输出"><div class="fence-label">输出</div><pre><code class="language-text">              浏览商品数      活跃天数     总购买次数
 cluster
-2    475120
-0    336204
-1    172781
+0         36.157093  5.070981  1.147749
+1        174.098360  8.476570  5.170955
+2         71.361528  7.948707  1.542965
+cluster
+2    478237
+0    336063
+1    169805
 Name: count, dtype: int64
-</code></pre></section><section class="markdown"><p>肘部法通过比较K=1至10时的簇内平方和，为聚类数量的选择提供依据。当曲线在K=3附近由快速下降转为相对平缓时，继续增加聚类数量带来的改善已经减弱，因此K=3可以在聚类紧密度和分群可解释性之间取得平衡。肘部法提供的是经验依据，不是严格的数学证明。<br> 使用K-Means将用户划分为三类，以便比较样本期内不同群体的行为特征。互动商品数、活跃天数和购买行为次数较高的群体可作为高价值用户观察组，各项指标较低的群体可作为非核心用户观察组，其余群体作为常规用户观察组。</p></section><details class="code"><summary>Python 代码</summary><pre><code class="language-python">#按照实际聚类特征自动生成标签，并按cluster索引对齐气泡大小
-cluster_sizes = df[&#x27;cluster&#x27;].value_counts().reindex(cluster_summary.index)
+</code></pre></section><section class="markdown"><blockquote><p>肘部法通过比较K=1至10时的簇内平方和，为聚类数量的选择提供依据。当曲线在K=3附近由快速下降转为相对平缓时，继续增加聚类数量带来的改善已经减弱，因此K=3可以在聚类紧密度和分群可解释性之间取得平衡。。<br> 使用K-Means将用户划分为三类，以便比较样本期内不同群体的行为特征。互动商品数、活跃天数和购买行为次数较高的群体可作为高价值用户观察组，各项指标较低的群体可作为非核心用户观察组，其余群体作为常规用户观察组。</p></blockquote></section><details class="code"><summary>Python 代码</summary><pre><code class="language-python">#按照实际聚类特征自动生成标签，并按cluster索引对齐气泡大小
+cluster_sizes = df['cluster'].value_counts().reindex(cluster_summary.index)
 
 standardized_cluster_summary = (
     pd.DataFrame(X, columns=feature_columns)
-    .assign(cluster=df[&#x27;cluster&#x27;].to_numpy())
-    .groupby(&#x27;cluster&#x27;)[feature_columns]
+    .assign(cluster=df['cluster'].to_numpy())
+    .groupby('cluster')[feature_columns]
     .mean()
 )
 cluster_scores = standardized_cluster_summary.mean(axis=1)
 ordered_clusters = cluster_scores.sort_values().index.tolist()
 cluster_labels = {
-    ordered_clusters[0]: &#x27;非核心用户&#x27;,
-    ordered_clusters[1]: &#x27;常规用户&#x27;,
-    ordered_clusters[2]: &#x27;高价值用户&#x27;
+    ordered_clusters[0]: '非核心用户',
+    ordered_clusters[1]: '常规用户',
+    ordered_clusters[2]: '高价值用户'
 }
 
 fig = go.Figure(data=[
     go.Scatter(
-        x=cluster_summary[&#x27;浏览商品数&#x27;],
-        y=cluster_summary[&#x27;活跃天数&#x27;],
-        mode=&#x27;markers+text&#x27;,
+        x=cluster_summary['浏览商品数'],
+        y=cluster_summary['活跃天数'],
+        mode='markers+text',
         text=[cluster_labels[index] for index in cluster_summary.index],
-        textposition=&#x27;middle center&#x27;,
+        textposition='middle center',
         marker=dict(
             size=cluster_sizes.to_numpy(),
-            sizemode=&#x27;area&#x27;,
+            sizemode='area',
             sizeref=30,
             color=cluster_sizes.to_numpy(),
             coloraxis=&quot;coloraxis&quot;
@@ -900,18 +902,18 @@ fig = go.Figure(data=[
 ])
 
 fig.update_layout(
-    title=&#x27;&lt;b&gt;用户象限图&lt;/b&gt;&#x27;,
-    xaxis_title=&#x27;发生互动的不同商品数&#x27;,
-    yaxis_title=&#x27;活跃天数&#x27;,
-    plot_bgcolor=&#x27;white&#x27;,
-    paper_bgcolor=&#x27;white&#x27;
+    title='&lt;b&gt;用户象限图&lt;/b&gt;',
+    xaxis_title='发生互动的不同商品数',
+    yaxis_title='活跃天数',
+    plot_bgcolor='white',
+    paper_bgcolor='white'
 )
 fig.update_xaxes(showgrid=False, zeroline=False)
 fig.update_yaxes(showgrid=False, zeroline=False)
 fig.show()
-</code></pre></details><section class="cell-output chart-output"><div style="height:525px; width:100%;">            <script>if (window.MathJax && window.MathJax.Hub && window.MathJax.Hub.Config) {window.MathJax.Hub.Config({SVG: {font: "STIX-Web"}});}</script>                    <div id="3ddac8fe-4e13-4a68-8d74-3896747bfcb0" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("3ddac8fe-4e13-4a68-8d74-3896747bfcb0")) {                    Plotly.newPlot(                        "3ddac8fe-4e13-4a68-8d74-3896747bfcb0",                        [{"marker":{"color":{"dtype":"i4","bdata":"TCEFAO2iAgDwPwcA"},"coloraxis":"coloraxis","size":{"dtype":"i4","bdata":"TCEFAO2iAgDwPwcA"},"sizemode":"area","sizeref":30},"mode":"markers+text","text":["\u975e\u6838\u5fc3\u7528\u6237","\u9ad8\u4ef7\u503c\u7528\u6237","\u5e38\u89c4\u7528\u6237"],"textposition":"middle center","x":{"dtype":"f8","bdata":"yfNtlHEXQkBJJ2am4bNlQBb39XOLuFFA"},"y":{"dtype":"f8","bdata":"TkHl3hZJFEDTVPuqGPMgQCeMgbNWyR9A"},"type":"scatter"}],                        {"template":{"layout":{"paper_bgcolor":"white","plot_bgcolor":"white","xaxis":{"showgrid":false,"zeroline":false},"yaxis":{"showgrid":false,"zeroline":false}}},"title":{"text":"\u003cb\u003e\u7528\u6237\u8c61\u9650\u56fe\u003c\u002fb\u003e"},"xaxis":{"title":{"text":"\u53d1\u751f\u4e92\u52a8\u7684\u4e0d\u540c\u5546\u54c1\u6570"},"showgrid":false,"zeroline":false},"yaxis":{"title":{"text":"\u6d3b\u8dc3\u5929\u6570"},"showgrid":false,"zeroline":false},"plot_bgcolor":"white","paper_bgcolor":"white"},                        {"responsive": true}                    ).then(function(){
-                            
-var gd = document.getElementById('3ddac8fe-4e13-4a68-8d74-3896747bfcb0');
+</code></pre></details><section class="cell-output chart-output"><div style="height:525px; width:100%;">                                <div id="b3c452fc-e6c4-4c41-9b15-7d2f27782bd4" class="plotly-graph-div" style="height:100%; width:100%;"></div>            <script>                window.PLOTLYENV=window.PLOTLYENV || {};                                if (document.getElementById("b3c452fc-e6c4-4c41-9b15-7d2f27782bd4")) {                    Plotly.newPlot(                        "b3c452fc-e6c4-4c41-9b15-7d2f27782bd4",                        [{"marker":{"color":{"dtype":"i4","bdata":"vyAFAE2XAgAdTAcA"},"coloraxis":"coloraxis","size":{"dtype":"i4","bdata":"vyAFAE2XAgAdTAcA"},"sizemode":"area","sizeref":30},"mode":"markers+text","text":["\u975e\u6838\u5fc3\u7528\u6237","\u9ad8\u4ef7\u503c\u7528\u6237","\u5e38\u89c4\u7528\u6237"],"textposition":"middle center","x":{"dtype":"f8","bdata":"bgz7mxsUQkCHTaDDJcNlQHCowUUj11FA"},"y":{"dtype":"f8","bdata":"a\u002fm9LK9IFEDRS9ABAfQgQCywkfZ5yx9A"},"type":"scatter"}],                        {"template":{"layout":{"paper_bgcolor":"white","plot_bgcolor":"white","xaxis":{"showgrid":false,"zeroline":false},"yaxis":{"showgrid":false,"zeroline":false}}},"title":{"text":"\u003cb\u003e\u7528\u6237\u8c61\u9650\u56fe\u003c\u002fb\u003e"},"xaxis":{"title":{"text":"\u53d1\u751f\u4e92\u52a8\u7684\u4e0d\u540c\u5546\u54c1\u6570"},"showgrid":false,"zeroline":false},"yaxis":{"title":{"text":"\u6d3b\u8dc3\u5929\u6570"},"showgrid":false,"zeroline":false},"plot_bgcolor":"white","paper_bgcolor":"white"},                        {"responsive": true}                    ).then(function(){
+
+var gd = document.getElementById('b3c452fc-e6c4-4c41-9b15-7d2f27782bd4');
 var x = new MutationObserver(function (mutations, observer) {{
         var display = window.getComputedStyle(gd).display;
         if (!display || display === 'none') {{
@@ -933,5 +935,4 @@ if (outputEl) {{
     x.observe(outputEl, {childList: true});
 }}
 
-                        })                };            </script>        </div></section><section class="markdown"><p>从用户画像看，平台用户可划分为非核心用户、常规用户和高价值用户。三类用户在活跃度和商品互动广度上差异明显：非核心用户活跃约5天、互动商品约36种；常规用户活跃约8天、互动约71种；高价值用户互动商品超过170种，且活跃度最高，体现出更强的平台黏性和消费潜力。<br></p><p>运营上应采取差异化分层策略：对高价值用户重点实施会员权益、专属优惠和新品优先体验，提高留存率，稳住平台基本盘；常规用户是最重要的潜力群体，可通过个性化推荐、满减及复购激励推动其向高价值用户升级；非核心用户数量虽少但却说明平台的发展潜力正在被进一步压缩，应当提高平台宣传、分发新人补贴、开展以老带新的优惠活动来吸引更多路人转为非核心用户，抢占电商购物平台市场。<br></p><p>需要注意，当前画像主要反映样本期内的行为活跃程度，缺少GMV、客单价、复购率及长期留存数据，因此“高价值”更多代表高行为价值，后续应结合RFM等指标完善用户价值分层。<br></p></section><section class="markdown"><hr><h1>项目总结</h1><p>本项目基于淘宝公开用户行为数据，对2017年11月25日至12月3日约98.8万名用户、超过1亿条浏览、收藏、加购和购买记录进行了分析。面对数GB规模的原始数据，我没有直接使用Pandas全量加载，而是通过DuckDB建立本地分析数据库，使用SQL完成数据清洗、时间特征提取和指标聚合，再结合Plotly与K-Means完成可视化和用户分群。这一过程让我实践了从大规模数据处理、指标设计到业务解释的完整分析流程。<br></p><p>从平台整体行为结构看，浏览行为占据绝大多数，收藏与加购行为次数合计约为浏览次数的8%，购买行为次数约为浏览次数的2%，说明用户从浏览到表达明确购买意向之间存在较大的数量差距。由于这些指标是不同类型行为的汇总次数比，不能直接视为同一用户购物路径上的严格转化率，因此我将推荐优化、分层优惠触达和收藏夹信息增强作为待验证的运营假设，并建议通过路径级漏斗和A/B测试评估实际效果。<br></p><p>小时维度的分析显示，用户行为具有明显的昼夜规律：3—5点是互动低谷，20—22点是互动高峰，其中21点的总体互动量最高。但流量高峰与购买行为效率高峰并不完全重合，浏览与购买行为次数比在10—12点表现较高，晚间流量高峰时则回落至总体水平附近。因此，可以分别将日间高效率时段和晚间高流量时段用于测试不同运营方案：前者侧重优惠提醒和购买决策促进，后者侧重重点商品曝光、直播内容和流量承接。<br></p><p>在商品价值分析中，我筛选独立浏览人数超过5,000的商品和类目，根据浏览量与浏览—购买行为次数比构建四象限模型，用于识别高流量高表现、低流量高表现、高流量低表现和低流量低表现的商品。该模型可以帮助提出差异化的商品运营方向，例如为潜力商品测试曝光提升，为高流量低表现商品检查推荐人群匹配度和详情页质量。相关建议属于观察性分析产生的业务假设，仍需通过实验数据验证。<br></p><p>在用户价值分析中，由于数据缺少订单金额，无法完整使用传统RFM模型，因此我选取互动商品数、活跃天数和购买行为次数作为聚类特征。其中，活跃天数按用户在样本期内发生行为的不同自然日数量计算。对特征标准化后，我使用肘部法比较不同K值的簇内平方和，并选择K=3建立K-Means模型，将用户划分为高价值、常规和非核心三类，为后续会员维护、用户培养和低成本召回提供分层思路。<br></p><p>这个项目不仅展示了我处理亿级行为数据、编写SQL和构建可视化分析的能力，也体现了我对指标口径和分析边界的重视。当前数据只有9天，且缺少订单金额、商品属性和长期留存信息，因此结论主要反映样本期内的行为特征，不能直接外推为长期规律或因果关系。后续可以扩展观察窗口，补充路径级转化漏斗、用户留存和聚类稳定性检验，并在获得金额数据后进一步开展RFM与用户生命周期价值分析。<br></p></section><details class="code"><summary>Python 代码</summary><pre><code class="language-python"></code></pre></details><script>window.addEventListener('load',function(){if(window.hljs)window.hljs.highlightAll();},{once:true});</script></main></body></html>
-
+                        })                };            </script>        </div></section><section class="markdown"><p>从用户画像看，平台用户可划分为非核心用户、常规用户和高价值用户。三类用户在活跃度和商品互动广度上差异明显：非核心用户活跃约5天、互动商品约36种；常规用户活跃约8天、互动约71种；高价值用户互动商品超过170种，且活跃度最高，体现出更强的平台黏性和消费潜力。<br></p><p>运营上应采取差异化分层策略：<br> 对高价值用户重点实施会员权益、专属优惠和新品优先体验，提高留存率，稳住平台基本盘；<br> 常规用户是最重要的潜力群体，可通过个性化推荐、满减及复购激励推动其向高价值用户升级；<br> 非核心用户数量虽少但却说明平台的发展潜力正在被进一步压缩。应当提高平台宣传、分发新人补贴、开展以老带新的优惠活动来吸引更多路人转为非核心用户，抢占电商购物平台市场。<br></p><p>需要注意，当前画像主要反映样本期内的行为活跃程度，缺少GMV、客单价、复购率及长期留存数据，因此“高价值”更多代表高行为价值，后续应结合RFM等指标完善用户价值分层。<br></p></section><section class="markdown"><hr><h1>项目总结</h1><p>本项目基于淘宝公开用户行为数据，对2017年11月25日至12月3日约98.8万名用户、超过1亿条浏览、收藏、加购和购买记录进行了分析。面对数GB规模的原始数据，我没有直接使用Pandas全量加载，而是通过DuckDB建立本地分析数据库，使用SQL完成数据清洗、时间特征提取和指标聚合，再结合Plotly与K-Means完成可视化和用户分群。这一过程让我实践了从大规模数据处理、指标设计到业务解释的完整分析流程。<br></p><p>从平台整体行为结构看，浏览行为占据绝大多数，基数十分庞大，但收藏与加购行为次数合计约为浏览次数的8%，购买行为次数约为浏览次数的2%，说明用户从浏览到表达明确购买意向之间存在较大的数量差距。由于这些指标是不同类型行为的汇总次数比，不能直接视为同一用户购物路径上的严格转化率，因此我将推荐优化、分层优惠触达和收藏夹信息增强作为待验证的运营假设，并建议通过路径级漏斗和A/B测试评估实际效果。<br></p><p>小时维度的分析显示，用户行为具有明显的昼夜规律：3—5点是互动低谷，20—22点是互动高峰，其中21点的总体互动量最高。但流量高峰与购买行为效率高峰并不完全重合，浏览与购买行为次数比在10—12点表现较高，晚间流量高峰时则回落至总体水平附近。因此，可以分别将日间高效率时段和晚间高流量时段用于测试不同运营方案：前者侧重重点商品曝光、直播内容和流量承接，后者侧重优惠提醒和购买决策促进。<br></p><p>在商品价值分析中，我筛选独立浏览人数超过5,000的商品和类目，根据浏览量与浏览—购买行为次数比构建四象限模型，用于识别高流量高表现、低流量高表现、高流量低表现和低流量低表现的商品。该模型可以帮助提出差异化的商品运营方向，例如为潜力商品测试曝光提升，为高流量低表现商品检查推荐人群匹配度和详情页质量。相关建议属于观察性分析产生的业务假设，仍需通过实验数据验证。<br></p><p>在用户价值分析中，由于数据缺少订单金额，无法完整使用传统RFM模型，因此我选取互动商品数、活跃天数和购买行为次数作为聚类特征。其中，活跃天数按用户在样本期内发生行为的不同自然日数量计算。对特征标准化后，我使用肘部法比较不同K值的簇内平方和，并选择K=3建立K-Means模型，将用户划分为高价值、常规和非核心三类，为后续会员维护、用户培养和低成本召回提供分层思路。<br></p><p>这个项目不仅展示了我处理亿级行为数据、编写SQL和构建可视化分析的能力，也体现了我对指标口径和分析边界的重视。当前数据只有9天，且缺少订单金额、商品属性和长期留存信息，因此结论主要反映样本期内的行为特征，不能直接外推为长期规律或因果关系。后续可以扩展观察窗口，补充路径级转化漏斗、用户留存和聚类稳定性检验，并在获得金额数据后进一步开展RFM与用户生命周期价值分析。<br></p></section><details class="code"><summary>Python 代码</summary><pre><code class="language-python"></code></pre></details><script>window.addEventListener('load',function(){if(window.hljs)window.hljs.highlightAll();},{once:true});</script></main></body></html>
