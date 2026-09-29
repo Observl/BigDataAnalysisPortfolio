@@ -43,4 +43,8 @@ pip install pandas numpy duckdb plotly openpyxl jupyter
 jupyter notebook "新能源汽车经营分析.ipynb"
 ```
 
-保留本目录中的三个 Excel 文件，并按顺序运行 Notebook。运行过程会生成本地 `Chinese EV Sales Database.db`，该数据库不随仓库提交。
+保留 `source_data/` 中的三个 Excel 文件，并按顺序运行 Notebook。运行过程会在项目根目录生成本地 `Chinese EV Sales Database.db`，该数据库不随仓库提交。
+
+## Power BI 看板
+
+已创建 [EV BI.pbix](./EV%20BI.pbix)。运行 `powerbi/export_powerbi_data.py` 后，可导入六张用于概览、厂商/车型和数据质量页的轻量表；页面设计、DAX 示例与样本口径说明见 [Power BI 搭建说明](./powerbi/README.md)。
