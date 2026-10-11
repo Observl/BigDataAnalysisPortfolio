@@ -1,0 +1,22 @@
+model Model
+	culture: zh-CN
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: zh-CN
+	valueFilterBehavior: independent
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_QueryOrder = ["EV销量","汽车销量"]
+
+annotation PBI_ProTooling = ["MCP-PBIModeling","DevMode"]
+
+ref table EV销量
+ref table 汽车销量
+ref table DateTableTemplate_82b9a311-b659-450b-be08-a459c106287c
+ref table LocalDateTable_25e1b552-5c0a-4dff-a700-8ad6b5c64d48
+
+ref cultureInfo zh-CN
+

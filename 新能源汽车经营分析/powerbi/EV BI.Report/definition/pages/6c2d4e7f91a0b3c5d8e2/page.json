@@ -1,0 +1,13 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "6c2d4e7f91a0b3c5d8e2",
+  "displayName": "代码测试页",
+  "displayOption": "FitToPage",
+  "height": 1080,
+  "width": 1920,
+  "pageBinding": {
+    "name": "2f9a1c7e4d6b8a3c0e51",
+    "type": "Default",
+    "parameters": []
+  }
+}

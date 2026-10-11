@@ -1,0 +1,5 @@
+relationship 5bd335d3-2371-43f6-83a5-d75a51703c2e
+	joinOnDateBehavior: datePartOnly
+	fromColumn: EV销量.时间
+	toColumn: LocalDateTable_25e1b552-5c0a-4dff-a700-8ad6b5c64d48.Date
+

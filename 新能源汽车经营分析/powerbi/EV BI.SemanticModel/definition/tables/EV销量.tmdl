@@ -1,0 +1,386 @@
+table EV销量
+	lineageTag: 3fef8139-7dd1-4ddf-8aad-d1c67793d255
+
+	/// 当前筛选上下文中，数据集最晚月份的销量。用于“当月销量”KPI。
+	measure 最晚月销量 =
+			
+			VAR LatestMonth =
+			    CALCULATE(
+			        MAX('EV销量'[时间]),
+			        REMOVEFILTERS('EV销量'[时间])
+			    )
+			RETURN
+			    CALCULATE(
+			        SUM('EV销量'[销量]),
+			        REMOVEFILTERS('EV销量'[时间]),
+			        'EV销量'[时间] = LatestMonth
+			    )
+		formatString: #,0
+		displayFolder: 核心KPI\销量
+		lineageTag: b4ac0089-db0f-4d2c-b382-cb8e8f1c9da9
+
+		changedProperty = IsHidden
+
+	/// 当前筛选上下文中，数据集第二晚月份的销量。仅供环比增长率计算使用。
+	measure 第二晚月销量 =
+			
+			VAR LatestMonth =
+			    CALCULATE(
+			        MAX('EV销量'[时间]),
+			        REMOVEFILTERS('EV销量'[时间])
+			    )
+			VAR PreviousMonth1 =
+			    CALCULATE(
+			        MAX('EV销量'[时间]),
+			        FILTER(
+			            ALL('EV销量'[时间]),
+			            'EV销量'[时间] < LatestMonth
+			        )
+			    )
+			RETURN
+			    CALCULATE(
+			        SUM('EV销量'[销量]),
+			        REMOVEFILTERS('EV销量'[时间]),
+			        'EV销量'[时间] = PreviousMonth1
+			    )
+		formatString: #,0
+		displayFolder: 辅助指标
+		lineageTag: 95161cd8-513d-4459-89a7-24492440b938
+
+		changedProperty = IsHidden
+
+	/// 最晚月销量相对上一年同月销量的增长率。
+	measure 同比增长率 =
+			
+			DIVIDE(
+			    [最晚月销量] - [前一年同月销量],
+			    [前一年同月销量]
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: 核心KPI\增长
+		lineageTag: 776a5ba9-106b-47dd-b946-f2a30cec4815
+
+		changedProperty = IsHidden
+
+	/// 当前筛选上下文中，最晚月份对应的上一年同月销量。仅供同比增长率计算使用。
+	measure 前一年同月销量 =
+			
+			VAR LatestMonth =
+			    CALCULATE(
+			        MAX('EV销量'[时间]),
+			        REMOVEFILTERS('EV销量'[时间])
+			    )
+			VAR SameMonthLastYear =
+			    EDATE(LatestMonth, -12)
+			RETURN
+			    CALCULATE(
+			        SUM('EV销量'[销量]),
+			        REMOVEFILTERS('EV销量'[时间]),
+			        'EV销量'[时间] = SameMonthLastYear
+			    )
+		formatString: #,0
+		displayFolder: 辅助指标
+		lineageTag: 795ae278-faa4-4b67-9b3e-207229546a06
+
+		changedProperty = IsHidden
+
+	/// 最晚月销量相对第二晚月销量的增长率。
+	measure 环比增长率 =
+			
+			DIVIDE(
+			    [最晚月销量] - [第二晚月销量],
+			    [第二晚月销量]
+			)
+		formatString: 0.00%;-0.00%;0.00%
+		displayFolder: 核心KPI\增长
+		lineageTag: e225c8cd-bfee-473c-8ecc-de7e82ad8642
+
+		changedProperty = IsHidden
+
+	/// 同比和环比 KPI 使用的零增长目标基准。
+	measure 标准 = 0
+		formatString: 0.00%
+		displayFolder: 辅助指标
+		lineageTag: 5a4f3281-835a-4eaf-bef4-73ef59afcc49
+
+		changedProperty = IsHidden
+
+	/// 特斯拉中国按厂商月销量计算的最晚月份排名。
+	measure 最晚月特斯拉排名 =
+			
+			VAR LatestMonth =
+			    CALCULATE (
+			        MAX ( 'EV销量'[时间] ),
+			        ALL ( 'EV销量'[时间] )
+			    )
+			VAR ManufacturerSales =
+			    CALCULATETABLE (
+			        SUMMARIZE (
+			            'EV销量',
+			            'EV销量'[厂商],
+			            "SalesValue", SUM ( 'EV销量'[销量] )
+			        ),
+			        ALL ( 'EV销量'[厂商] ),
+			        'EV销量'[时间] = LatestMonth
+			    )
+			VAR TeslaSales =
+			    MAXX (
+			        FILTER ( ManufacturerSales, 'EV销量'[厂商] = "特斯拉中国" ),
+			        [SalesValue]
+			    )
+			RETURN
+			    RANKX ( ManufacturerSales, [SalesValue], TeslaSales, DESC, DENSE )
+		formatString: 0
+		displayFolder: 核心KPI\排名
+		lineageTag: c100fd5c-5eb8-4910-8cf0-55eb564b37e1
+
+		changedProperty = IsHidden
+
+	/// 特斯拉中国按厂商月销量计算的第二晚月份排名。用于“当月排名”KPI比较。
+	measure 第二晚月特斯拉排名 =
+			
+			VAR LatestMonth =
+			    CALCULATE (
+			        MAX ( 'EV销量'[时间] ),
+			        ALL ( 'EV销量'[时间] )
+			    )
+			VAR SecondLatestMonth =
+			    CALCULATE (
+			        MAX ( 'EV销量'[时间] ),
+			        FILTER (
+			            ALL ( 'EV销量'[时间] ),
+			            'EV销量'[时间] < LatestMonth
+			        )
+			    )
+			VAR ManufacturerSales =
+			    CALCULATETABLE (
+			        SUMMARIZE (
+			            'EV销量',
+			            'EV销量'[厂商],
+			            "SalesValue", SUM ( 'EV销量'[销量] )
+			        ),
+			        ALL ( 'EV销量'[厂商] ),
+			        'EV销量'[时间] = SecondLatestMonth
+			    )
+			VAR TeslaSales =
+			    MAXX (
+			        FILTER ( ManufacturerSales, 'EV销量'[厂商] = "特斯拉中国" ),
+			        [SalesValue]
+			    )
+			RETURN
+			    RANKX ( ManufacturerSales, [SalesValue], TeslaSales, DESC, DENSE )
+		formatString: 0
+		displayFolder: 辅助指标
+		lineageTag: 5b74d096-56ab-48d4-afe0-2e5563627be6
+
+		changedProperty = IsHidden
+
+	/// 特斯拉中国在数据集最晚月份的销量占该月全部EV厂商销量的比例。
+	measure 最晚月特斯拉销量占比 =
+			VAR LatestMonth =
+			    CALCULATE(
+			        MAX('EV销量'[时间]),
+			        REMOVEFILTERS('EV销量'[时间]),
+			        REMOVEFILTERS('EV销量'[厂商])
+			    )
+			VAR TeslaSales =
+			    CALCULATE(
+			        SUM('EV销量'[销量]),
+			        REMOVEFILTERS('EV销量'[时间]),
+			        REMOVEFILTERS('EV销量'[厂商]),
+			        'EV销量'[时间] = LatestMonth,
+			        'EV销量'[厂商] = "特斯拉中国"
+			    )
+			VAR TotalEVSales =
+			    CALCULATE(
+			        SUM('EV销量'[销量]),
+			        REMOVEFILTERS('EV销量'[时间]),
+			        REMOVEFILTERS('EV销量'[厂商]),
+			        'EV销量'[时间] = LatestMonth
+			    )
+			RETURN
+			    DIVIDE(TeslaSales, TotalEVSales)
+		formatString: 0.00%
+		displayFolder: 核心KPI\占比
+		lineageTag: f879abbb-1225-48f9-bf5f-b93023a70f9a
+
+		changedProperty = IsHidden
+
+	/// 特斯拉中国在数据集第二晚月份的销量占该月全部EV厂商销量的比例。用于占比KPI比较。
+	measure 第二晚月特斯拉销量占比 =
+			VAR LatestMonth =
+			    CALCULATE(
+			        MAX('EV销量'[时间]),
+			        REMOVEFILTERS('EV销量'[时间]),
+			        REMOVEFILTERS('EV销量'[厂商])
+			    )
+			VAR SecondLatestMonth =
+			    CALCULATE(
+			        MAX('EV销量'[时间]),
+			        FILTER(
+			            ALL('EV销量'[时间]),
+			            'EV销量'[时间] < LatestMonth
+			        ),
+			        REMOVEFILTERS('EV销量'[厂商])
+			    )
+			VAR TeslaSales =
+			    CALCULATE(
+			        SUM('EV销量'[销量]),
+			        REMOVEFILTERS('EV销量'[时间]),
+			        REMOVEFILTERS('EV销量'[厂商]),
+			        'EV销量'[时间] = SecondLatestMonth,
+			        'EV销量'[厂商] = "特斯拉中国"
+			    )
+			VAR TotalEVSales =
+			    CALCULATE(
+			        SUM('EV销量'[销量]),
+			        REMOVEFILTERS('EV销量'[时间]),
+			        REMOVEFILTERS('EV销量'[厂商]),
+			        'EV销量'[时间] = SecondLatestMonth
+			    )
+			RETURN
+			    DIVIDE(TeslaSales, TotalEVSales)
+		formatString: 0.00%
+		displayFolder: 辅助指标
+		lineageTag: 51de5a18-1793-43b6-98bb-5e3e052ef9f2
+
+		changedProperty = IsHidden
+
+	measure 特斯拉月销量占比 =
+			
+			DIVIDE(
+			    CALCULATE(
+			        SUM('EV销量'[销量]),
+			        REMOVEFILTERS('EV销量'[厂商]),
+			        'EV销量'[厂商] = "特斯拉中国"
+			    ),
+			    CALCULATE(
+			        SUM('EV销量'[销量]),
+			        REMOVEFILTERS('EV销量'[厂商])
+			    )
+			)
+		formatString: 0.00%
+		displayFolder: 核心KPI\占比
+		lineageTag: 7b94f54a-9c46-4789-bcfb-3d653c20b030
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column 年份
+		dataType: int64
+		formatString: 0
+		lineageTag: ee08fcb5-c297-40eb-bd31-aa1b6b330838
+		summarizeBy: sum
+		sourceColumn: 年份
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 月份
+		dataType: int64
+		formatString: 0
+		lineageTag: f5e7fde8-25c6-484f-989a-18ea3b29662b
+		summarizeBy: sum
+		sourceColumn: 月份
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 排名
+		dataType: int64
+		formatString: 0
+		lineageTag: 2aeea741-3dea-473b-9c4c-0e103520f59f
+		summarizeBy: sum
+		sourceColumn: 排名
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 厂商
+		dataType: string
+		lineageTag: f3e96fe2-323f-427a-a3a1-71aa9bfa9e62
+		summarizeBy: none
+		sourceColumn: 厂商
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 车型
+		dataType: string
+		lineageTag: 68b9895c-5a8e-42c5-ade1-cb05d1460a92
+		summarizeBy: none
+		sourceColumn: 车型
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 销量
+		dataType: int64
+		formatString: 0
+		lineageTag: b4b23838-3f17-4c80-b7ee-5b41f0cfb1d3
+		summarizeBy: sum
+		sourceColumn: 销量
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 售价（万元）
+		dataType: string
+		lineageTag: 929997e4-836f-4e6b-82e5-7669637c2a1a
+		summarizeBy: none
+		sourceColumn: 售价（万元）
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 时间 = DATE('EV销量'[年份],'EV销量'[月份],1)
+		formatString: Long Date
+		lineageTag: dcc3f8d3-183c-4abc-b058-e5ba2406ae4e
+		summarizeBy: none
+
+		variation 变体
+			isDefault
+			relationship: 5bd335d3-2371-43f6-83a5-d75a51703c2e
+			defaultHierarchy: LocalDateTable_25e1b552-5c0a-4dff-a700-8ad6b5c64d48.日期层次结构
+
+		changedProperty = DataType
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column 厂商分组 =
+			
+			IF (
+			    'EV销量'[厂商] = "特斯拉中国",
+			    "特斯拉",
+			    "其他厂商"
+			)
+		lineageTag: b90c9884-00f5-4a03-9656-d0f359c86d46
+		summarizeBy: none
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition EV销量 = m
+		mode: import
+		source =
+				let
+				  源 = Excel.Workbook(File.Contents("D:\大数据分析作品集\BigDataAnalysisPortfolio\新能源汽车经营分析\source_data\中国电动车每月销售表.xlsx"), null, true),
+				  #"导航 1" = 源{[Item = "Sheet1", Kind = "Sheet"]}[Data],
+				  已提升标题 = Table.PromoteHeaders(#"导航 1", [PromoteAllScalars = true]),
+				  已更改列类型 = Table.TransformColumnTypes(已提升标题, {{"年份", Int64.Type}, {"月份", Int64.Type}, {"排名", Int64.Type}, {"厂商", type text}, {"车型", type text}, {"销量", Int64.Type}, {"售价（万元）", type text}}, "zh-Hans")
+				in
+				  已更改列类型
+
+	changedProperty = Name
+

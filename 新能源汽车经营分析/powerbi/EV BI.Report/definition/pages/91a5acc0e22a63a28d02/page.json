@@ -1,0 +1,90 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json",
+  "name": "91a5acc0e22a63a28d02",
+  "displayName": "特斯拉营业数据",
+  "displayOption": "FitToPage",
+  "height": 1080,
+  "width": 1920,
+  "pageBinding": {
+    "name": "f69331d54b2d55904dde",
+    "type": "Default",
+    "parameters": []
+  },
+  "visualInteractions": [
+    {
+      "source": "09f93501185b4fe8efe7",
+      "target": "ffd01445305b56d73f59",
+      "type": "NoFilter"
+    },
+    {
+      "source": "55e3333d500062bac03f",
+      "target": "09f93501185b4fe8efe7",
+      "type": "NoFilter"
+    },
+    {
+      "source": "c104ff9e62a672899a6e",
+      "target": "09f93501185b4fe8efe7",
+      "type": "NoFilter"
+    },
+    {
+      "source": "c6068922756f4aeb1228",
+      "target": "ffd01445305b56d73f59",
+      "type": "NoFilter"
+    },
+    {
+      "source": "ffd01445305b56d73f59",
+      "target": "09f93501185b4fe8efe7",
+      "type": "NoFilter"
+    },
+    {
+      "source": "c0f435e9f86d285b030f",
+      "target": "ffd01445305b56d73f59",
+      "type": "NoFilter"
+    },
+    {
+      "source": "c0f435e9f86d285b030f",
+      "target": "4a7d610647e2e4efe1d8",
+      "type": "NoFilter"
+    },
+    {
+      "source": "09f93501185b4fe8efe7",
+      "target": "c0f435e9f86d285b030f",
+      "type": "NoFilter"
+    },
+    {
+      "source": "c0f435e9f86d285b030f",
+      "target": "09f93501185b4fe8efe7",
+      "type": "NoFilter"
+    },
+    {
+      "source": "c6068922756f4aeb1228",
+      "target": "4a7d610647e2e4efe1d8",
+      "type": "NoFilter"
+    },
+    {
+      "source": "e3941deb64133fd455ec",
+      "target": "ffd01445305b56d73f59",
+      "type": "NoFilter"
+    },
+    {
+      "source": "e3941deb64133fd455ec",
+      "target": "4a7d610647e2e4efe1d8",
+      "type": "NoFilter"
+    },
+    {
+      "source": "e3941deb64133fd455ec",
+      "target": "c0f435e9f86d285b030f",
+      "type": "NoFilter"
+    },
+    {
+      "source": "e3941deb64133fd455ec",
+      "target": "09f93501185b4fe8efe7",
+      "type": "NoFilter"
+    },
+    {
+      "source": "c0f435e9f86d285b030f",
+      "target": "e3941deb64133fd455ec",
+      "type": "HighlightFilter"
+    }
+  ]
+}

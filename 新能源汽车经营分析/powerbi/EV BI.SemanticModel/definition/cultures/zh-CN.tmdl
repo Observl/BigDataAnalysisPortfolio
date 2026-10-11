@@ -1,0 +1,1877 @@
+cultureInfo zh-CN
+
+	linguisticMetadata =
+			{
+			  "Version": "4.1.0",
+			  "Language": "en-US",
+			  "Entities": {
+			    "EV销量": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "EV销量": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "EV销量.年份": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "ConceptualProperty": "年份"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "年份": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "EV销量.月份": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "ConceptualProperty": "月份"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "月份": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "EV销量.排名": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "ConceptualProperty": "排名"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "排名": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "EV销量.厂商": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "ConceptualProperty": "厂商"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "厂商": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "EV销量.车型": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "ConceptualProperty": "车型"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "车型": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "EV销量.销量": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "ConceptualProperty": "销量"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "销量": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "EV销量.售价万元": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "ConceptualProperty": "售价（万元）"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "售价（万元）": {
+			            "State": "Generated"
+			          }
+			        },
+			        {
+			          "售价": {
+			            "State": "Generated",
+			            "Weight": 0.75
+			          }
+			        }
+			      ]
+			    },
+			    "EV销量.时间": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "ConceptualProperty": "时间"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "时间": {
+			            "State": "Generated"
+			          }
+			        },
+			        {
+			          "date": {
+			            "State": "Generated",
+			            "Weight": 0.7
+			          }
+			        }
+			      ],
+			      "SemanticType": "Time"
+			    },
+			    "EV销量.时间.日期层次结构": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "VariationSource": "时间",
+			          "VariationSet": "变体",
+			          "Hierarchy": "日期层次结构"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "日期层次结构": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "EV销量.时间.年": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "VariationSource": "时间",
+			          "VariationSet": "变体",
+			          "Hierarchy": "日期层次结构",
+			          "HierarchyLevel": "年"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "年": {
+			            "State": "Generated"
+			          }
+			        },
+			        {
+			          "时间 年": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "EV销量.时间.季度": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "VariationSource": "时间",
+			          "VariationSet": "变体",
+			          "Hierarchy": "日期层次结构",
+			          "HierarchyLevel": "季度"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "季度": {
+			            "State": "Generated"
+			          }
+			        },
+			        {
+			          "时间 季度": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "EV销量.时间.月份": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "VariationSource": "时间",
+			          "VariationSet": "变体",
+			          "Hierarchy": "日期层次结构",
+			          "HierarchyLevel": "月份"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "月份": {
+			            "State": "Generated"
+			          }
+			        },
+			        {
+			          "时间 月份": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "EV销量.时间.日": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "VariationSource": "时间",
+			          "VariationSet": "变体",
+			          "Hierarchy": "日期层次结构",
+			          "HierarchyLevel": "日"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "日": {
+			            "State": "Generated"
+			          }
+			        },
+			        {
+			          "时间 日": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "EV销量.最晚月销量": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "ConceptualProperty": "最晚月销量"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "最晚月销量": {
+			            "State": "Generated"
+			          }
+			        },
+			        {
+			          "当月销量": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "EV销量.第二晚月销量": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "ConceptualProperty": "第二晚月销量"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "第二晚月销量": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "汽车销量": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "汽车销量"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "汽车销量": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "汽车销量.年份": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "汽车销量",
+			          "ConceptualProperty": "年份"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "年份": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "汽车销量.月份": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "汽车销量",
+			          "ConceptualProperty": "月份"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "月份": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "汽车销量.排名": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "汽车销量",
+			          "ConceptualProperty": "排名"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "排名": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "汽车销量.车型": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "汽车销量",
+			          "ConceptualProperty": "车型"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "车型": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "汽车销量.厂商": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "汽车销量",
+			          "ConceptualProperty": "厂商"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "厂商": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "汽车销量.销量": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "汽车销量",
+			          "ConceptualProperty": "销量"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "销量": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "汽车销量.售价万元": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "汽车销量",
+			          "ConceptualProperty": "售价（万元）"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "售价（万元）": {
+			            "State": "Generated"
+			          }
+			        },
+			        {
+			          "售价": {
+			            "State": "Generated",
+			            "Weight": 0.75
+			          }
+			        }
+			      ]
+			    },
+			    "EV销量.同比增长率": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "ConceptualProperty": "同比增长率"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "同比增长率": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "EV销量.前一年同月销量": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "ConceptualProperty": "前一年同月销量"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "前一年同月销量": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "EV销量.环比增长率": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "ConceptualProperty": "环比增长率"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "环比增长率": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "EV销量.标准": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "ConceptualProperty": "标准"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "标准": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "EV销量.厂商分组": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "ConceptualProperty": "厂商分组"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "厂商分组": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "EV销量.最晚月特斯拉排名": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "ConceptualProperty": "最晚月特斯拉排名"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "最晚月特斯拉排名": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "EV销量.第二晚月特斯拉排名": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "ConceptualProperty": "第二晚月特斯拉排名"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "第二晚月特斯拉排名": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "EV销量.最晚月特斯拉销量占比": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "ConceptualProperty": "最晚月特斯拉销量占比"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "最晚月特斯拉销量占比": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "EV销量.第二晚月特斯拉销量占比": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "ConceptualProperty": "第二晚月特斯拉销量占比"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "第二晚月特斯拉销量占比": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    },
+			    "EV销量.特斯拉月销量占比": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "EV销量",
+			          "ConceptualProperty": "特斯拉月销量占比"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "特斯拉月销量占比": {
+			            "State": "Generated"
+			          }
+			        }
+			      ]
+			    }
+			  },
+			  "Relationships": {
+			    "EV销量_时间_日期层次结构_has_EV销量_时间_年": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量.时间.日期层次结构": {
+			          "Target": {
+			            "Entity": "EV销量.时间.日期层次结构"
+			          }
+			        },
+			        "EV销量.时间.年": {
+			          "Target": {
+			            "Entity": "EV销量.时间.年"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量.时间.日期层次结构"
+			            },
+			            "Object": {
+			              "Role": "EV销量.时间.年"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "日期层次结构_have_年"
+			        }
+			      ]
+			    },
+			    "EV销量_时间_has_日期层次结构": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量.时间": {
+			          "Target": {
+			            "Entity": "EV销量.时间"
+			          }
+			        },
+			        "EV销量.时间.日期层次结构": {
+			          "Target": {
+			            "Entity": "EV销量.时间.日期层次结构"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量.时间"
+			            },
+			            "Object": {
+			              "Role": "EV销量.时间.日期层次结构"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "时间_have_日期层次结构"
+			        }
+			      ]
+			    },
+			    "EV销量_has_特斯拉月销量占比": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量": {
+			          "Target": {
+			            "Entity": "EV销量"
+			          }
+			        },
+			        "EV销量.特斯拉月销量占比": {
+			          "Target": {
+			            "Entity": "EV销量.特斯拉月销量占比"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量"
+			            },
+			            "Object": {
+			              "Role": "EV销量.特斯拉月销量占比"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "EV销量_have_特斯拉月销量占比"
+			        }
+			      ]
+			    },
+			    "EV销量_has_第二晚月特斯拉销量占比": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量": {
+			          "Target": {
+			            "Entity": "EV销量"
+			          }
+			        },
+			        "EV销量.第二晚月特斯拉销量占比": {
+			          "Target": {
+			            "Entity": "EV销量.第二晚月特斯拉销量占比"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量"
+			            },
+			            "Object": {
+			              "Role": "EV销量.第二晚月特斯拉销量占比"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "EV销量_have_第二晚月特斯拉销量占比"
+			        }
+			      ]
+			    },
+			    "EV销量_has_最晚月特斯拉销量占比": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量": {
+			          "Target": {
+			            "Entity": "EV销量"
+			          }
+			        },
+			        "EV销量.最晚月特斯拉销量占比": {
+			          "Target": {
+			            "Entity": "EV销量.最晚月特斯拉销量占比"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量"
+			            },
+			            "Object": {
+			              "Role": "EV销量.最晚月特斯拉销量占比"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "EV销量_have_最晚月特斯拉销量占比"
+			        }
+			      ]
+			    },
+			    "EV销量_has_第二晚月特斯拉排名": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量": {
+			          "Target": {
+			            "Entity": "EV销量"
+			          }
+			        },
+			        "EV销量.第二晚月特斯拉排名": {
+			          "Target": {
+			            "Entity": "EV销量.第二晚月特斯拉排名"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量"
+			            },
+			            "Object": {
+			              "Role": "EV销量.第二晚月特斯拉排名"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "EV销量_have_第二晚月特斯拉排名"
+			        }
+			      ]
+			    },
+			    "EV销量_has_最晚月特斯拉排名": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量": {
+			          "Target": {
+			            "Entity": "EV销量"
+			          }
+			        },
+			        "EV销量.最晚月特斯拉排名": {
+			          "Target": {
+			            "Entity": "EV销量.最晚月特斯拉排名"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量"
+			            },
+			            "Object": {
+			              "Role": "EV销量.最晚月特斯拉排名"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "EV销量_have_最晚月特斯拉排名"
+			        }
+			      ]
+			    },
+			    "EV销量_has_厂商分组": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量": {
+			          "Target": {
+			            "Entity": "EV销量"
+			          }
+			        },
+			        "EV销量.厂商分组": {
+			          "Target": {
+			            "Entity": "EV销量.厂商分组"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量"
+			            },
+			            "Object": {
+			              "Role": "EV销量.厂商分组"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "EV销量_have_厂商分组"
+			        }
+			      ]
+			    },
+			    "EV销量_has_标准": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量": {
+			          "Target": {
+			            "Entity": "EV销量"
+			          }
+			        },
+			        "EV销量.标准": {
+			          "Target": {
+			            "Entity": "EV销量.标准"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量"
+			            },
+			            "Object": {
+			              "Role": "EV销量.标准"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "EV销量_have_标准"
+			        }
+			      ]
+			    },
+			    "EV销量_has_环比增长率": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量": {
+			          "Target": {
+			            "Entity": "EV销量"
+			          }
+			        },
+			        "EV销量.环比增长率": {
+			          "Target": {
+			            "Entity": "EV销量.环比增长率"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量"
+			            },
+			            "Object": {
+			              "Role": "EV销量.环比增长率"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "EV销量_have_环比增长率"
+			        }
+			      ]
+			    },
+			    "EV销量_has_前一年同月销量": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量": {
+			          "Target": {
+			            "Entity": "EV销量"
+			          }
+			        },
+			        "EV销量.前一年同月销量": {
+			          "Target": {
+			            "Entity": "EV销量.前一年同月销量"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量"
+			            },
+			            "Object": {
+			              "Role": "EV销量.前一年同月销量"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "EV销量_have_前一年同月销量"
+			        }
+			      ]
+			    },
+			    "EV销量_has_同比增长率": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量": {
+			          "Target": {
+			            "Entity": "EV销量"
+			          }
+			        },
+			        "EV销量.同比增长率": {
+			          "Target": {
+			            "Entity": "EV销量.同比增长率"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量"
+			            },
+			            "Object": {
+			              "Role": "EV销量.同比增长率"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "EV销量_have_同比增长率"
+			        }
+			      ]
+			    },
+			    "汽车销量_has_售价万元": {
+			      "Binding": {
+			        "ConceptualEntity": "汽车销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "汽车销量": {
+			          "Target": {
+			            "Entity": "汽车销量"
+			          }
+			        },
+			        "汽车销量.售价万元": {
+			          "Target": {
+			            "Entity": "汽车销量.售价万元"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "汽车销量"
+			            },
+			            "Object": {
+			              "Role": "汽车销量.售价万元"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "汽车销量_have_售价万元"
+			        }
+			      ]
+			    },
+			    "汽车销量_has_销量": {
+			      "Binding": {
+			        "ConceptualEntity": "汽车销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "汽车销量": {
+			          "Target": {
+			            "Entity": "汽车销量"
+			          }
+			        },
+			        "汽车销量.销量": {
+			          "Target": {
+			            "Entity": "汽车销量.销量"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "汽车销量"
+			            },
+			            "Object": {
+			              "Role": "汽车销量.销量"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "汽车销量_have_销量"
+			        }
+			      ]
+			    },
+			    "汽车销量_has_厂商": {
+			      "Binding": {
+			        "ConceptualEntity": "汽车销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "汽车销量": {
+			          "Target": {
+			            "Entity": "汽车销量"
+			          }
+			        },
+			        "汽车销量.厂商": {
+			          "Target": {
+			            "Entity": "汽车销量.厂商"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "汽车销量"
+			            },
+			            "Object": {
+			              "Role": "汽车销量.厂商"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "汽车销量_have_厂商"
+			        }
+			      ]
+			    },
+			    "汽车销量_has_车型": {
+			      "Binding": {
+			        "ConceptualEntity": "汽车销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "汽车销量": {
+			          "Target": {
+			            "Entity": "汽车销量"
+			          }
+			        },
+			        "汽车销量.车型": {
+			          "Target": {
+			            "Entity": "汽车销量.车型"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "汽车销量"
+			            },
+			            "Object": {
+			              "Role": "汽车销量.车型"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "汽车销量_have_车型"
+			        }
+			      ]
+			    },
+			    "汽车销量_has_排名": {
+			      "Binding": {
+			        "ConceptualEntity": "汽车销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "汽车销量": {
+			          "Target": {
+			            "Entity": "汽车销量"
+			          }
+			        },
+			        "汽车销量.排名": {
+			          "Target": {
+			            "Entity": "汽车销量.排名"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "汽车销量"
+			            },
+			            "Object": {
+			              "Role": "汽车销量.排名"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "汽车销量_have_排名"
+			        }
+			      ]
+			    },
+			    "汽车销量_has_月份": {
+			      "Binding": {
+			        "ConceptualEntity": "汽车销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "汽车销量": {
+			          "Target": {
+			            "Entity": "汽车销量"
+			          }
+			        },
+			        "汽车销量.月份": {
+			          "Target": {
+			            "Entity": "汽车销量.月份"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "汽车销量"
+			            },
+			            "Object": {
+			              "Role": "汽车销量.月份"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "汽车销量_have_月份"
+			        }
+			      ]
+			    },
+			    "汽车销量_has_年份": {
+			      "Binding": {
+			        "ConceptualEntity": "汽车销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "汽车销量": {
+			          "Target": {
+			            "Entity": "汽车销量"
+			          }
+			        },
+			        "汽车销量.年份": {
+			          "Target": {
+			            "Entity": "汽车销量.年份"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "汽车销量"
+			            },
+			            "Object": {
+			              "Role": "汽车销量.年份"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "汽车销量_have_年份"
+			        }
+			      ]
+			    },
+			    "EV销量_has_第二晚月销量": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量": {
+			          "Target": {
+			            "Entity": "EV销量"
+			          }
+			        },
+			        "EV销量.第二晚月销量": {
+			          "Target": {
+			            "Entity": "EV销量.第二晚月销量"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量"
+			            },
+			            "Object": {
+			              "Role": "EV销量.第二晚月销量"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "EV销量_have_第二晚月销量"
+			        }
+			      ]
+			    },
+			    "EV销量_has_最晚月销量": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量": {
+			          "Target": {
+			            "Entity": "EV销量"
+			          }
+			        },
+			        "EV销量.最晚月销量": {
+			          "Target": {
+			            "Entity": "EV销量.最晚月销量"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量"
+			            },
+			            "Object": {
+			              "Role": "EV销量.最晚月销量"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "EV销量_have_最晚月销量"
+			        }
+			      ]
+			    },
+			    "EV销量_has_时间": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量": {
+			          "Target": {
+			            "Entity": "EV销量"
+			          }
+			        },
+			        "EV销量.时间": {
+			          "Target": {
+			            "Entity": "EV销量.时间"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量"
+			            },
+			            "Object": {
+			              "Role": "EV销量.时间"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "EV销量_have_时间"
+			        }
+			      ]
+			    },
+			    "EV销量_has_售价万元": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量": {
+			          "Target": {
+			            "Entity": "EV销量"
+			          }
+			        },
+			        "EV销量.售价万元": {
+			          "Target": {
+			            "Entity": "EV销量.售价万元"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量"
+			            },
+			            "Object": {
+			              "Role": "EV销量.售价万元"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "EV销量_have_售价万元"
+			        }
+			      ]
+			    },
+			    "EV销量_has_销量": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量": {
+			          "Target": {
+			            "Entity": "EV销量"
+			          }
+			        },
+			        "EV销量.销量": {
+			          "Target": {
+			            "Entity": "EV销量.销量"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量"
+			            },
+			            "Object": {
+			              "Role": "EV销量.销量"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "EV销量_have_销量"
+			        }
+			      ]
+			    },
+			    "EV销量_has_车型": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量": {
+			          "Target": {
+			            "Entity": "EV销量"
+			          }
+			        },
+			        "EV销量.车型": {
+			          "Target": {
+			            "Entity": "EV销量.车型"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量"
+			            },
+			            "Object": {
+			              "Role": "EV销量.车型"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "EV销量_have_车型"
+			        }
+			      ]
+			    },
+			    "EV销量_has_厂商": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量": {
+			          "Target": {
+			            "Entity": "EV销量"
+			          }
+			        },
+			        "EV销量.厂商": {
+			          "Target": {
+			            "Entity": "EV销量.厂商"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量"
+			            },
+			            "Object": {
+			              "Role": "EV销量.厂商"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "EV销量_have_厂商"
+			        }
+			      ]
+			    },
+			    "EV销量_has_排名": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量": {
+			          "Target": {
+			            "Entity": "EV销量"
+			          }
+			        },
+			        "EV销量.排名": {
+			          "Target": {
+			            "Entity": "EV销量.排名"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量"
+			            },
+			            "Object": {
+			              "Role": "EV销量.排名"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "EV销量_have_排名"
+			        }
+			      ]
+			    },
+			    "EV销量_has_月份": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量": {
+			          "Target": {
+			            "Entity": "EV销量"
+			          }
+			        },
+			        "EV销量.月份": {
+			          "Target": {
+			            "Entity": "EV销量.月份"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量"
+			            },
+			            "Object": {
+			              "Role": "EV销量.月份"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "EV销量_have_月份"
+			        }
+			      ]
+			    },
+			    "EV销量_has_年份": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量": {
+			          "Target": {
+			            "Entity": "EV销量"
+			          }
+			        },
+			        "EV销量.年份": {
+			          "Target": {
+			            "Entity": "EV销量.年份"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量"
+			            },
+			            "Object": {
+			              "Role": "EV销量.年份"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "EV销量_have_年份"
+			        }
+			      ]
+			    },
+			    "EV销量_时间_日期层次结构_has_EV销量_时间_季度": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量.时间.日期层次结构": {
+			          "Target": {
+			            "Entity": "EV销量.时间.日期层次结构"
+			          }
+			        },
+			        "EV销量.时间.季度": {
+			          "Target": {
+			            "Entity": "EV销量.时间.季度"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量.时间.日期层次结构"
+			            },
+			            "Object": {
+			              "Role": "EV销量.时间.季度"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "日期层次结构_have_季度"
+			        }
+			      ]
+			    },
+			    "EV销量_时间_日期层次结构_has_EV销量_时间_月份": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量.时间.日期层次结构": {
+			          "Target": {
+			            "Entity": "EV销量.时间.日期层次结构"
+			          }
+			        },
+			        "EV销量.时间.月份": {
+			          "Target": {
+			            "Entity": "EV销量.时间.月份"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量.时间.日期层次结构"
+			            },
+			            "Object": {
+			              "Role": "EV销量.时间.月份"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "日期层次结构_have_月份"
+			        }
+			      ]
+			    },
+			    "EV销量_时间_日期层次结构_has_EV销量_时间_日": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量.时间.日期层次结构": {
+			          "Target": {
+			            "Entity": "EV销量.时间.日期层次结构"
+			          }
+			        },
+			        "EV销量.时间.日": {
+			          "Target": {
+			            "Entity": "EV销量.时间.日"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量.时间.日期层次结构"
+			            },
+			            "Object": {
+			              "Role": "EV销量.时间.日"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "日期层次结构_have_日"
+			        }
+			      ]
+			    },
+			    "EV销量_时间_年_has_EV销量_时间_季度": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量.时间.年": {
+			          "Target": {
+			            "Entity": "EV销量.时间.年"
+			          }
+			        },
+			        "EV销量.时间.季度": {
+			          "Target": {
+			            "Entity": "EV销量.时间.季度"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量.时间.年"
+			            },
+			            "Object": {
+			              "Role": "EV销量.时间.季度"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "年_have_季度"
+			        },
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量.时间.季度"
+			            },
+			            "Object": {
+			              "Role": "EV销量.时间.年"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "季度_have_年"
+			        },
+			        {
+			          "Preposition": {
+			            "Subject": {
+			              "Role": "EV销量.时间.季度"
+			            },
+			            "Prepositions": [
+			              {
+			                "in": {
+			                  "State": "Generated"
+			                }
+			              }
+			            ],
+			            "Object": {
+			              "Role": "EV销量.时间.年"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "季度_are_in_年"
+			        }
+			      ]
+			    },
+			    "EV销量_时间_季度_has_EV销量_时间_月份": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量.时间.季度": {
+			          "Target": {
+			            "Entity": "EV销量.时间.季度"
+			          }
+			        },
+			        "EV销量.时间.月份": {
+			          "Target": {
+			            "Entity": "EV销量.时间.月份"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量.时间.季度"
+			            },
+			            "Object": {
+			              "Role": "EV销量.时间.月份"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "季度_have_月份"
+			        },
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量.时间.月份"
+			            },
+			            "Object": {
+			              "Role": "EV销量.时间.季度"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "月份_have_季度"
+			        },
+			        {
+			          "Preposition": {
+			            "Subject": {
+			              "Role": "EV销量.时间.月份"
+			            },
+			            "Prepositions": [
+			              {
+			                "in": {
+			                  "State": "Generated"
+			                }
+			              }
+			            ],
+			            "Object": {
+			              "Role": "EV销量.时间.季度"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "月份_are_in_季度"
+			        }
+			      ]
+			    },
+			    "EV销量_时间_月份_has_EV销量_时间_日": {
+			      "Binding": {
+			        "ConceptualEntity": "EV销量"
+			      },
+			      "State": "Generated",
+			      "Roles": {
+			        "EV销量.时间.月份": {
+			          "Target": {
+			            "Entity": "EV销量.时间.月份"
+			          }
+			        },
+			        "EV销量.时间.日": {
+			          "Target": {
+			            "Entity": "EV销量.时间.日"
+			          }
+			        }
+			      },
+			      "Phrasings": [
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量.时间.月份"
+			            },
+			            "Object": {
+			              "Role": "EV销量.时间.日"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "月份_have_日"
+			        },
+			        {
+			          "Attribute": {
+			            "Subject": {
+			              "Role": "EV销量.时间.日"
+			            },
+			            "Object": {
+			              "Role": "EV销量.时间.月份"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "日_have_月份"
+			        },
+			        {
+			          "Preposition": {
+			            "Subject": {
+			              "Role": "EV销量.时间.日"
+			            },
+			            "Prepositions": [
+			              {
+			                "in": {
+			                  "State": "Generated"
+			                }
+			              }
+			            ],
+			            "Object": {
+			              "Role": "EV销量.时间.月份"
+			            }
+			          },
+			          "State": "Generated",
+			          "Weight": 0.99,
+			          "ID": "日_are_in_月份"
+			        }
+			      ]
+			    }
+			  },
+			  "Agents": {
+			    "Internal": {
+			      "Version": "1.1.0"
+			    }
+			  }
+			}
+		contentType: json
+

@@ -1,0 +1,90 @@
+table 汽车销量
+	lineageTag: 3ba2f1e3-b542-4c92-9d2e-5a67417bd85f
+
+	column 年份
+		dataType: int64
+		formatString: 0
+		lineageTag: 13cbf6c7-3175-454d-8a0f-a42b4f3f2df1
+		summarizeBy: sum
+		sourceColumn: 年份
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 月份
+		dataType: int64
+		formatString: 0
+		lineageTag: a176ca60-7407-4653-a975-55de9714e0ad
+		summarizeBy: sum
+		sourceColumn: 月份
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 排名
+		dataType: int64
+		formatString: 0
+		lineageTag: 0b701f23-09a1-4e77-9e53-32ca9a503112
+		summarizeBy: sum
+		sourceColumn: 排名
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 车型
+		dataType: string
+		lineageTag: 196b02fd-1e5e-4021-8d4a-a11b0e6b0800
+		summarizeBy: none
+		sourceColumn: 车型
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 厂商
+		dataType: string
+		lineageTag: 63efcaf5-b381-4ff3-a614-866492b154b0
+		summarizeBy: none
+		sourceColumn: 厂商
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 销量
+		dataType: int64
+		formatString: 0
+		lineageTag: dcde32ee-5d6a-49b0-be52-0877921420de
+		summarizeBy: sum
+		sourceColumn: 销量
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	column 售价（万元）
+		dataType: string
+		lineageTag: 07b77d0c-7933-466d-bb46-8ac9456e7245
+		summarizeBy: none
+		sourceColumn: 售价（万元）
+
+		changedProperty = IsHidden
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 汽车销量 = m
+		mode: import
+		source =
+				let
+				  源 = Excel.Workbook(File.Contents("D:\大数据分析作品集\BigDataAnalysisPortfolio\新能源汽车经营分析\source_data\中国汽车每月销售表.xlsx"), null, true),
+				  #"导航 1" = 源{[Item = "Sheet1", Kind = "Sheet"]}[Data],
+				  已提升标题 = Table.PromoteHeaders(#"导航 1", [PromoteAllScalars = true]),
+				  已更改列类型 = Table.TransformColumnTypes(已提升标题, {{"年份", Int64.Type}, {"月份", Int64.Type}, {"排名", Int64.Type}, {"车型", type text}, {"厂商", type text}, {"销量", Int64.Type}, {"售价（万元）", type text}}, "zh-Hans")
+				in
+				  已更改列类型
+
+	changedProperty = Name
+

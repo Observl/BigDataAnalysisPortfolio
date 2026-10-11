@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "EV BI"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "f6e3f849-f1d6-4fc8-be8d-e7c7e106a9e3"
+  }
+}
