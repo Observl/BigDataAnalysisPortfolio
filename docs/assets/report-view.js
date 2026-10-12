@@ -105,6 +105,7 @@
     var charts = document.getElementById('charts-panel');
     var grid = document.getElementById('charts-grid');
     var translated = document.getElementById('zh-panel');
+    var feelings = document.getElementById('feelings-panel');
     if (!full || !charts || !grid) return;
     var cards = Array.from(full.querySelectorAll('.chart-output'));
     var locations = new Map();
@@ -138,7 +139,7 @@
 
     function setMode(mode) {
       if (mode === 'zh' && !translated) mode = 'full';
-      if (!['charts', 'full', 'zh'].includes(mode)) mode = 'full';
+      if (!['charts', 'full', 'zh', 'feelings'].includes(mode)) mode = 'charts';
       document.querySelectorAll('.view-switch button').forEach(function (button) {
         var selected = button.dataset.view === mode;
         button.setAttribute('aria-selected', String(selected));
@@ -147,6 +148,7 @@
       full.hidden = mode !== 'full';
       charts.hidden = mode !== 'charts';
       if (translated) translated.hidden = mode !== 'zh';
+      if (feelings) feelings.hidden = mode !== 'feelings';
       document.body.classList.toggle('view-charts', mode === 'charts');
       document.body.classList.toggle('view-zh', mode === 'zh');
       document.documentElement.lang = mode === 'zh' ? 'zh-CN' : (translated ? 'en' : 'zh-CN');
@@ -172,7 +174,7 @@
         });
       }
       var url = new URL(location.href);
-      if (mode === 'full') url.searchParams.delete('view');
+      if (mode === 'charts') url.searchParams.delete('view');
       else url.searchParams.set('view', mode);
       history.replaceState(null, '', url);
       resizeCharts(document.querySelector('main'));
@@ -191,7 +193,7 @@
     });
     renderPlotlyData();
     localizeTables(translated);
-    setMode(new URL(location.href).searchParams.get('view') || 'full');
+    setMode(new URL(location.href).searchParams.get('view') || 'charts');
     window.addEventListener('resize', function () { resizeCharts(document.querySelector('main')); });
     if (window.hljs) document.querySelectorAll('pre code.language-python').forEach(function (code) { window.hljs.highlightElement(code); });
   }

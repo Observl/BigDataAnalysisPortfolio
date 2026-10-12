@@ -4,7 +4,7 @@
 
 基于 Olist 公开电商数据，分析订单规模、品类与卖家结构、客户复购、支付方式、履约时长和评价。项目以描述性分析与探索性分群为主；观察到的关联不等于因果影响。
 
-[在线报告（英文全文、图表汇总、中文翻译）](https://observl.github.io/BigDataAnalysisPortfolio/brazil/) · [分析 Notebook](./Brazil%20EC.ipynb)
+[在线报告（默认逐张图表、英文全文、中文翻译、项目感受）](https://observl.github.io/BigDataAnalysisPortfolio/brazil/) · [分析 Notebook](./Brazil%20EC.ipynb)。项目感受档位暂未填写。
 
 ## 数据与分析口径
 

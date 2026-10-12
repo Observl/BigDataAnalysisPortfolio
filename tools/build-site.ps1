@@ -131,11 +131,13 @@ foreach ($project in $projects) {
       <button type="button" role="tab" aria-selected="false" data-view="charts">图表</button>
       <button type="button" role="tab" aria-selected="true" data-view="full">全文</button>
       $languageButton
+      <button type="button" role="tab" aria-selected="false" data-view="feelings">项目感受</button>
     </nav>
   </div>
   <div id="full-panel" class="report-panel">$full</div>
   <div id="charts-panel" class="report-panel" hidden><p class="view-note">共 $chartCount 个图表 · 来自项目 Notebook 的已保存输出</p><div id="charts-grid" class="charts-grid"></div></div>
   $translatedPanel
+  <div id="feelings-panel" class="report-panel feelings-panel" hidden><h1>项目感受</h1><p>待补充</p></div>
 </main>
 </body>
 </html>
