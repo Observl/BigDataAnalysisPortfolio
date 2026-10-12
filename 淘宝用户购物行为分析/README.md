@@ -4,7 +4,7 @@
 
 基于淘宝公开用户行为日志，对 2017 年 11 月 25 日至 12 月 3 日、约 98.8 万名用户的超过 1 亿条浏览、收藏、加购和购买记录进行探索性分析。项目聚焦样本期内的行为结构、时间节律、商品表现与用户差异，展示从大规模数据处理到业务解释的完整流程。
 
-[查看 GitHub Pages 交互式报告](https://observl.github.io/BigDataAnalysisPortfolio/taobao/)
+[查看 GitHub Pages 交互式报告](https://observl.github.io/BigDataAnalysisPortfolio/taobao/)（顶部可切换“图表 / 全文”；网页展示 Notebook 已保存的结果）
 
 ## 技术方案
 
@@ -50,4 +50,4 @@ jupyter notebook "淘宝用户购物行为分析.ipynb"
 
 ## Power BI 看板
 
-已创建 [Taobao BI.pbix](./powerbi/Taobao%20BI.pbix)。运行 `powerbi/export_powerbi_data.py` 后，将生成的四张轻量聚合表导入 PBIX；字段口径、页面布局与限制见 [Power BI 搭建说明](./powerbi/README.md)。
+已创建 [Taobao BI.pbix](./powerbi/Taobao%20BI.pbix)。如需重新生成看板数据，可运行 `powerbi/export_powerbi_data.py`，再核对并导入聚合工作簿；字段口径、页面布局与限制见 [Power BI 搭建说明](./powerbi/README.md)。

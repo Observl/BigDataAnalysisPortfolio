@@ -4,7 +4,7 @@
 
 基于中国整体汽车与新能源汽车月度销量数据，构建面向经营复盘的探索性分析 Notebook。项目从市场趋势、品牌竞争、车型结构、销量加权价格区间及特斯拉案例五个角度描述样本期内的行业变化，不将销量变动直接解释为经营、价格、政策或渠道的因果结果。
 
-项目页面目前仅展示横幅，完整分析以本地 Notebook 为准：[新能源汽车经营分析.ipynb](./新能源汽车经营分析.ipynb)。
+[查看交互式在线报告](https://observl.github.io/BigDataAnalysisPortfolio/nev/)（可切换“全文 / 图表”）；完整代码与可复运行流程见 [新能源汽车经营分析.ipynb](./新能源汽车经营分析.ipynb)。
 
 ## 数据与口径
 
@@ -43,8 +43,8 @@ pip install pandas numpy duckdb plotly openpyxl jupyter
 jupyter notebook "新能源汽车经营分析.ipynb"
 ```
 
-保留 `source_data/` 中的三个 Excel 文件，并按顺序运行 Notebook。运行过程会在项目根目录生成本地 `Chinese EV Sales Database.db`，该数据库不随仓库提交。
+将所需原始 Excel 文件放在 `source_data/`，以 Notebook 中的读取路径为准，按顺序运行。运行过程会在项目根目录生成本地 `Chinese EV Sales Database.db`，该数据库不随仓库提交。在线网页展示 Notebook 已保存的输出，不是实时重算结果。
 
 ## Power BI 看板
 
-已创建 [EV BI.pbix](./EV%20BI.pbix)。运行 `powerbi/export_powerbi_data.py` 后，可导入六张用于概览、厂商/车型和数据质量页的轻量表；页面设计、DAX 示例与样本口径说明见 [Power BI 搭建说明](./powerbi/README.md)。
+已创建 [EV BI.pbix](./powerbi/EV%20BI.pbix)，同目录还有聚合数据工作簿与 PBIP 编辑版。Power BI 文件应在 Desktop 中打开并核对数据源、字段与页面；页面设计和样本口径说明见 [Power BI 搭建说明](./powerbi/README.md)。

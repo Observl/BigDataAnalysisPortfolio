@@ -175,7 +175,7 @@
   }
 
   function buildOutline() {
-    var main = document.querySelector("main");
+    var main = document.querySelector("#full-panel");
     if (!main) return;
     var headings = Array.prototype.slice.call(main.querySelectorAll("h1"));
     if (!headings.length) return;
@@ -244,7 +244,7 @@
     details.appendChild(summary);
     details.appendChild(nav);
     aside.appendChild(details);
-    document.body.insertBefore(aside, main);
+    document.body.insertBefore(aside, main.closest("main"));
 
     if (window.matchMedia("(max-width: 1050px)").matches) details.open = false;
     window.addEventListener("load", function () {
