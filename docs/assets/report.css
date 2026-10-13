@@ -59,8 +59,9 @@ body[data-project] th{background:var(--soft)}
 body[data-project] .view-switch button:focus-visible{outline-color:var(--accent-ink)}
 body[data-project] .report-banner{background:var(--soft);box-shadow:0 18px 45px rgba(25,31,27,.09)}
 @view-transition{navigation:auto}
-::view-transition-old(root){animation:110ms ease-out both report-fade-out}
-::view-transition-new(root){animation:200ms cubic-bezier(.23,1,.32,1) both report-fade-in}
+::view-transition-old(root){animation:260ms ease-out both report-fade-out}
+::view-transition-new(root){animation:420ms cubic-bezier(.23,1,.32,1) both report-fade-in}
 @keyframes report-fade-out{to{opacity:0}}
 @keyframes report-fade-in{from{opacity:0}}
+@media(prefers-reduced-motion:no-preference){body{animation:report-fade-in 420ms cubic-bezier(.23,1,.32,1) both}}
 @media(prefers-reduced-motion:reduce){::view-transition-old(root),::view-transition-new(root){animation-duration:.01ms!important}}
