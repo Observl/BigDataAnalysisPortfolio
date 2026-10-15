@@ -1,0 +1,20 @@
+{
+	"name": "observl-home-preview-motion",
+	"private": true,
+	"version": "1.0.0",
+	"scripts": {
+		"build": "esbuild motion-source.js --bundle --minify --format=iife --target=es2020 --outfile=motion.bundle.js"
+	},
+	"dependencies": {
+		"animejs": "4.5.0",
+		"gsap": "3.15.0",
+		"motion": "14.1.0",
+		"react": "^19.3.1",
+		"react-dom": "^19.3.1"
+	},
+	"devDependencies": {
+		"@jsrepo/transform-javascript": "^8.0.1",
+		"esbuild": "0.28.2",
+		"jsrepo": "^3.8.1"
+	}
+}
