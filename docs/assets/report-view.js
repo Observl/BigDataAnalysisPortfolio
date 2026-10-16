@@ -91,10 +91,20 @@
       requestAnimationFrame(function () {
         root.querySelectorAll('.plotly-graph-div').forEach(function (graph) {
           if (!graph._fullLayout) return;
-          if (document.body.classList.contains('view-charts')) {
-            window.Plotly.relayout(graph, { height: 370 });
-          }
-          window.Plotly.Plots.resize(graph);
+          var card = graph.closest('.chart-output');
+          if (!card || !card.getClientRects().length) return;
+          var nativeHeight = Number(card.dataset.nativeChartHeight) || 525;
+          var compact = window.matchMedia('(max-width: 560px)').matches;
+          var dense = card.dataset.chartDense === 'true';
+          var height = document.body.classList.contains('view-charts')
+            ? Math.max(compact ? 520 : 540, Math.min(nativeHeight, compact ? 720 : 820), dense ? (compact ? 620 : 660) : 0)
+            : nativeHeight;
+          var wrapper = graph.parentElement;
+          if (wrapper && wrapper !== card && wrapper.style.height) wrapper.style.height = height + 'px';
+          window.Plotly.relayout(graph, {
+            width: Math.max(1, Math.floor(card.clientWidth)),
+            height: height
+          });
         });
       });
     });
@@ -116,6 +126,15 @@
       locations.set(card.id, marker);
       var title = card.getAttribute('data-chart-title') || '图表';
       card.setAttribute('aria-label', title);
+      var script = card.querySelector('script[type="application/json"]');
+      var graph = card.querySelector('.plotly-graph-div');
+      var figure;
+      if (script) {
+        try { figure = JSON.parse(script.textContent); } catch (error) { /* Render path reports malformed figure data. */ }
+      }
+      var inlineHeight = graph && graph.parentElement !== card ? parseInt(graph.parentElement.style.height, 10) : 0;
+      card.dataset.nativeChartHeight = String((figure && figure.layout && figure.layout.height) || inlineHeight || 525);
+      card.dataset.chartDense = String(Boolean(figure && ((figure.layout.annotations || []).length >= 3 || (figure.data || []).length >= 5)));
     });
 
     function renderPlotlyData() {
@@ -195,8 +214,10 @@
     localizeTables(translated);
     setMode(new URL(location.href).searchParams.get('view') || 'charts');
     window.addEventListener('resize', function () { resizeCharts(document.querySelector('main')); });
+    window.addEventListener('load', function () { resizeCharts(document.querySelector('main')); });
     if (window.hljs) document.querySelectorAll('pre code.language-python').forEach(function (code) { window.hljs.highlightElement(code); });
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
   else init();
 }());
+
