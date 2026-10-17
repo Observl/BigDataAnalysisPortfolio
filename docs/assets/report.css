@@ -65,6 +65,38 @@ body[data-project] h2,body[data-project] .code summary{color:var(--accent-ink)}
 body[data-project] th{background:var(--soft)}
 body[data-project] .view-switch button:focus-visible{outline-color:var(--accent-ink)}
 body[data-project] .report-banner{background:var(--soft);box-shadow:0 18px 45px rgba(25,31,27,.09)}
+.report-skip{position:fixed;z-index:100;top:-100px;left:20px;padding:10px 16px;background:#fff;color:#000}
+.report-skip:focus{top:16px}
+.report-shell{color:#fff;background:#000;font-family:Arial,"Helvetica Neue","PingFang SC","Microsoft YaHei",sans-serif}
+.report-nav,.report-hero{width:min(100% - 80px,1600px);margin-inline:auto}
+.report-nav{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:center;gap:24px;min-height:74px;border-bottom:1px solid #777}
+.report-brand{width:max-content;color:#fff;font-size:1.32rem;font-weight:800;letter-spacing:-.075em;line-height:1;text-decoration:none}
+.report-brand span{color:#2877f9}
+.report-nav>span{justify-self:center;color:#bbb;font-size:.64rem;letter-spacing:.14em;white-space:nowrap}
+.report-nav-home{justify-self:end;display:inline-flex;gap:18px;align-items:center;padding:8px 0;border-bottom:1px solid transparent;color:#fff;font-size:.82rem;line-height:1.3;text-decoration:none}
+.report-nav-home:hover,.report-nav-home:focus-visible{border-color:currentColor}
+.report-hero{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:clamp(28px,5vw,90px);align-items:stretch;min-height:clamp(440px,48vw,650px);padding-block:clamp(40px,5vw,76px)}
+.report-hero-copy{display:flex;flex-direction:column;align-items:flex-start;min-width:0}
+.report-kicker{margin:0;color:#bbb;font-size:.72rem;letter-spacing:.12em}
+.report-kicker span{margin-inline:.5em}
+.report-hero-title{max-width:12ch;margin:auto 0 0;font-size:clamp(3.1rem,5.5vw,6.3rem);font-weight:800;letter-spacing:-.085em;line-height:1.08;overflow-wrap:anywhere}
+.report-deck{max-width:30ch;margin:28px 0 0;color:#c8c8c8;font-size:clamp(1rem,1.45vw,1.25rem);line-height:1.6}
+.report-down{display:inline-flex;gap:44px;align-items:center;margin-top:clamp(28px,5vw,70px);padding-bottom:8px;border-bottom:1px solid #aaa;color:#fff;font-size:.82rem;text-decoration:none}
+.report-down span{font-size:1.1rem;transition:transform .24s cubic-bezier(.22,1,.36,1)}
+.report-down:hover span,.report-down:focus-visible span{transform:translate(4px,3px)}
+body[data-project] .report-shell .report-banner{position:relative;align-self:stretch;min-height:350px;margin:0;border-radius:0;background:#111;box-shadow:none}
+.report-shell .report-banner::after{content:"";position:absolute;right:0;bottom:0;left:0;height:6px;background:var(--accent)}
+.report-shell .report-banner img{width:100%;height:100%;min-height:350px;object-fit:cover}
+.report-top{padding-top:24px}
+.view-switch{top:0;width:100%;justify-content:center;gap:clamp(6px,2vw,28px);margin:0 0 32px;padding:0;border-bottom:1px solid #c9c9c9;border-radius:0;background:#fff;box-shadow:none}
+.view-switch button{min-width:0;padding:13px clamp(8px,1.4vw,22px);border-bottom:2px solid transparent;border-radius:0;color:#555;background:transparent;font-family:Arial,"Helvetica Neue","PingFang SC","Microsoft YaHei",sans-serif;font-size:.82rem;font-weight:500}
+.view-switch button[aria-selected="true"]{border-bottom-color:#2877f9;color:#000;background:transparent;box-shadow:none}
+.view-switch button:hover{color:#000}
+.charts-grid{gap:clamp(36px,5vw,80px)}
+.charts-grid .chart-output{width:100%;min-width:0;max-width:100%;margin-inline:auto;padding:0;background:#fff}
+.charts-grid .plotly-graph-div{width:100%!important;max-width:100%!important}
+@media(max-width:900px){.report-nav>span{display:none}.report-nav{grid-template-columns:1fr auto}.report-hero{grid-template-columns:1fr;gap:38px;min-height:0}.report-hero-title{max-width:16ch;margin-top:72px}.report-shell .report-banner img{height:clamp(260px,52vw,500px)}}
+@media(max-width:560px){.report-nav,.report-hero{width:calc(100% - 36px)}.report-nav{min-height:64px}.report-hero{padding-block:30px 44px}.report-hero-title{margin-top:54px;font-size:clamp(2.7rem,11vw,4.2rem)}.report-deck{margin-top:22px}.report-down{margin-top:28px}body[data-project] .report-shell .report-banner,.report-shell .report-banner img{min-height:230px}.report-shell .report-banner img{height:260px}.view-switch{gap:0}.view-switch button{flex:1;padding:12px 4px;font-size:.75rem}}
 @view-transition{navigation:auto}
 ::view-transition-old(root){animation:260ms ease-out both report-fade-out}
 ::view-transition-new(root){animation:420ms cubic-bezier(.23,1,.32,1) both report-fade-in}

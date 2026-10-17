@@ -1,13 +1,15 @@
 param(
-    [string]$Root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path
+    [string]$Root = (Resolve-Path (Join-Path $PSScriptRoot '..')).Path,
+    [string[]]$Only = @()
 )
 
 $ErrorActionPreference = 'Stop'
 $docs = Join-Path $Root 'docs'
 $projects = @(
-    @{ Slug = 'taobao'; Folder = '淘宝用户购物行为分析'; Notebook = '淘宝用户购物行为分析.ipynb'; Title = '淘宝用户购物行为分析'; Lang = 'zh-CN'; Banner = '../assets/banners/taobao-user-behavior.png' },
-    @{ Slug = 'nev'; Folder = '新能源汽车经营分析'; Notebook = '新能源汽车经营分析.ipynb'; Title = '新能源汽车经营分析'; Lang = 'zh-CN'; Banner = '../assets/banners/nev-operations.png' },
-    @{ Slug = 'brazil'; Folder = 'Brazilian E-Commerce Analysis'; Notebook = 'Brazil EC.ipynb'; Title = 'Brazil E-Commerce Analysis'; Lang = 'en'; Banner = '' }
+    @{ Slug = 'taobao'; Folder = '淘宝用户购物行为分析'; Notebook = '淘宝用户购物行为分析.ipynb'; Title = '淘宝用户购物行为分析'; Index = '01 / 04'; Deck = '从购物行为出发，观察用户路径与商品偏好。'; Lang = 'zh-CN'; Banner = '../assets/portfolio/taobao-shopping-journey.jpg' },
+    @{ Slug = 'nev'; Folder = '新能源汽车经营分析'; Notebook = '新能源汽车经营分析.ipynb'; Title = '新能源汽车经营分析'; Index = '02 / 04'; Deck = '从销量、厂商、车型与价格，理解国内新能源汽车市场。'; Lang = 'zh-CN'; Banner = '../assets/portfolio/nev-china-market-v3.png' },
+    @{ Slug = 'brazil'; Folder = 'Brazilian E-Commerce Analysis'; Notebook = 'Brazil EC.ipynb'; Title = 'Brazil E-Commerce Analysis'; Index = '03 / 04'; Deck = 'Orders, customers, products and delivery across the Olist dataset.'; Lang = 'en'; Banner = '../assets/portfolio/brazil-commerce-v2.jpg' },
+    @{ Slug = 'clickstream'; Folder = 'Online-Shopping Clickstream Analysis'; Notebook = 'Clickstream 中文分析.ipynb'; Title = '在线购物点击流分析'; Index = '04 / 04'; Deck = '追踪服饰商品浏览路径，比较推荐排序的离线表现。'; Lang = 'zh-CN'; Banner = '../assets/portfolio/clickstream-editorial.webp' }
 )
 
 function Html([string]$value) { return [System.Net.WebUtility]::HtmlEncode($value) }
@@ -62,6 +64,7 @@ function RenderOutput($output, [int]$cellIndex, [int]$outputIndex, [bool]$transl
 }
 
 foreach ($project in $projects) {
+    if ($Only.Count -gt 0 -and $project.Slug -notin $Only) { continue }
     $notebookPath = Join-Path (Join-Path $Root $project.Folder) $project.Notebook
     $notebook = Get-Content -LiteralPath $notebookPath -Raw -Encoding UTF8 | ConvertFrom-Json -AsHashtable -DateKind String
     $translations = @{}
@@ -108,6 +111,14 @@ foreach ($project in $projects) {
     $languageButton = if ($project.Slug -eq 'brazil') { '<button type="button" role="tab" aria-selected="false" data-view="zh">中文翻译</button>' } else { '' }
     $translatedPanel = if ($project.Slug -eq 'brazil') { "<div id=`"zh-panel`" class=`"report-panel`" hidden>$zh</div>" } else { '' }
     $banner = if ($project.Banner) { "<div class=`"report-banner`"><img src=`"$($project.Banner)`" alt=`"$($project.Title) 项目横幅`"></div>" } else { '<div class="report-banner report-banner--text"><span>OLIST · BRAZILIAN E-COMMERCE</span><strong class="banner-en">Brazil E-Commerce Analysis</strong><strong class="banner-zh">巴西电商分析</strong><small class="banner-en">Orders · Customers · Products · Delivery</small><small class="banner-zh">订单 · 客户 · 商品 · 履约</small></div>' }
+    $projectSummary = if ($project.Slug -eq 'clickstream') { @'
+    <section class="report-facts" aria-label="点击流项目概览">
+      <div><strong>165,474</strong><span>商品点击</span></div>
+      <div><strong>24,026</strong><span>会话</span></div>
+      <div><strong>+9.24 pp</strong><span>历史回测 Hit@3 差值</span></div>
+    </section>
+    <p class="report-facts-note">2008 年 4 月 1 日至 8 月 13 日的服装网店日志。推荐差值仅为离线回测结果，不代表线上转化提升；A/B 测试方案已设计，真实实验尚未运行。</p>
+'@ } else { '' }
     $page = @"
 <!doctype html>
 <html lang="$($project.Lang)">
@@ -124,9 +135,26 @@ foreach ($project in $projects) {
   <script src="../assets/project-outline.js" defer></script>
 </head>
 <body data-project="$($project.Slug)">
-<main>
-  <a class="home-return" href="../index.html">← 返回主页</a>
-  <div class="report-top">$banner
+<a class="report-skip" href="#report-content">跳到报告内容</a>
+<header class="report-shell">
+  <nav class="report-nav" aria-label="项目导航">
+    <a class="report-brand" href="../index.html" aria-label="ObservL，返回主页">ObservL<span aria-hidden="true">.</span></a>
+    <span>DATA ANALYSIS / PORTFOLIO</span>
+    <a class="report-nav-home" href="../index.html#work">全部项目 <span aria-hidden="true">↗</span></a>
+  </nav>
+  <div class="report-hero">
+    <div class="report-hero-copy">
+      <p class="report-kicker">$($project.Index) <span aria-hidden="true">/</span> CASE STUDY</p>
+      <p class="report-hero-title">$($project.Title)</p>
+      <p class="report-deck">$($project.Deck)</p>
+      <a class="report-down" href="#report-content">查看分析 <span aria-hidden="true">↘</span></a>
+    </div>
+    $banner
+  </div>
+</header>
+<main id="report-content">
+  <div class="report-top">
+    $projectSummary
     <nav class="view-switch" role="tablist" aria-label="报告显示方式">
       <button type="button" role="tab" aria-selected="false" data-view="charts">图表</button>
       <button type="button" role="tab" aria-selected="true" data-view="full">全文</button>

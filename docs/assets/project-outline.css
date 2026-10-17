@@ -4,6 +4,12 @@ body.has-project-outline main {
   margin-right: auto;
 }
 
+body.has-project-outline.view-charts main,
+body.has-project-outline.view-zh main {
+  width: min(1500px, calc(100% - 40px));
+  margin-inline: auto;
+}
+
 .home-return {
   position: fixed;
   z-index: 40;
@@ -51,10 +57,10 @@ body.has-project-outline main {
   max-height: min(72vh, 620px);
   overflow: auto;
   transform: translateY(-50%);
-  border: 1px solid #e4d9f3;
-  border-radius: 16px;
+  border: 1px solid #c9c9c9;
+  border-radius: 0;
   background: rgba(255, 255, 255, .94);
-  box-shadow: 0 18px 45px rgba(83, 48, 121, .14);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, .10);
   backdrop-filter: blur(14px);
 }
 
@@ -63,7 +69,7 @@ body.has-project-outline main {
 .project-outline-label {
   display: block;
   margin: 0 0 8px;
-  color: #592694;
+  color: #000;
   font-size: .78rem;
   font-weight: 750;
   letter-spacing: .08em;
@@ -73,7 +79,7 @@ body.has-project-outline main {
   display: block;
   padding: 7px 9px;
   border-radius: 8px;
-  color: #6d6479;
+  color: #555;
   font-size: .82rem;
   font-weight: 650;
   line-height: 1.35;
@@ -83,8 +89,8 @@ body.has-project-outline main {
 .project-outline a:hover,
 .project-outline a:focus-visible,
 .project-outline a[aria-current="true"] {
-  color: #592694;
-  background: #f3edff;
+  color: #000;
+  background: #eef4ff;
   outline: none;
 }
 
@@ -173,6 +179,13 @@ h1.section-toggle { scroll-margin-top: 28px; }
   border-radius: 12px;
   background: #fff;
   overflow: visible;
+}
+
+body.view-charts .cell-output.chart-output {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 /* One Notebook chart output is an isolated rendering boundary. */
