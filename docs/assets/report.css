@@ -53,6 +53,13 @@ body.view-zh #zh-panel{max-width:1120px;margin:auto}
 body[data-project="taobao"]{--accent:#f4ae52;--accent-ink:#875515;--primary:#875515;--soft:#fff5e8}
 body[data-project="nev"]{--accent:#06d6a0;--accent-ink:#056e56;--primary:#056e56;--soft:#e9fff8}
 body[data-project="brazil"]{--accent:#4f7d32;--accent-ink:#385c23;--primary:#385c23;--soft:#f0f6eb}
+body[data-project="clickstream"]{--accent:#ab8bd4;--accent-ink:#67458d;--primary:#67458d;--soft:#f5f0fa}
+.report-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;margin:6px 0 12px;padding:20px 0;border-block:1px solid var(--line)}
+.report-facts div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.report-facts strong{font-size:clamp(1.35rem,2.5vw,2rem);line-height:1.2;font-variant-numeric:tabular-nums;color:var(--accent-ink)}
+.report-facts span,.report-facts-note{color:var(--muted);font-size:.88rem}
+.report-facts-note{margin:0 0 20px;line-height:1.6}
+@media(max-width:560px){.report-facts{gap:10px}.report-facts strong{font-size:1.25rem}.report-facts span{font-size:.72rem}}
 body[data-project] h1{border-bottom-color:var(--accent)}
 body[data-project] h2,body[data-project] .code summary{color:var(--accent-ink)}
 body[data-project] th{background:var(--soft)}
